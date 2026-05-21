@@ -3,3 +3,5 @@ export type BoardListItem = {
   title: string;
   created_at: string;
 };
+
+export type BoardDetails = BoardListItem;
