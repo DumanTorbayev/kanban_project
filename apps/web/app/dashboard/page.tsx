@@ -1,6 +1,7 @@
 import { getBoards } from "@/entities/board/api/get-boards";
 import { CreateBoardForm } from "@/features/create-board/ui/create-board-form";
 import { requireUser } from "@/shared/lib/auth/require-user";
+import { AppContainer } from "@/shared/ui/app-container";
 import { BoardsList } from "@/widgets/boards-list/ui/boards-list";
 import { DashboardHeader } from "@/widgets/dashboard-header/ui/dashboard-header";
 
@@ -19,11 +20,11 @@ export default async function DashboardPage({
 
   return (
     <main className="min-h-svh bg-muted/30 p-6">
-      <section className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+      <AppContainer>
         <DashboardHeader email={user.email} />
         <CreateBoardForm error={params?.error} />
         <BoardsList boards={boards ?? []} error={boardsError?.message} />
-      </section>
+      </AppContainer>
     </main>
   );
 }
