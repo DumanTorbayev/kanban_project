@@ -1,53 +1,28 @@
-import Link from "next/link";
+import { getBoards } from "@/entities/board/api/get-boards";
+import { CreateBoardForm } from "@/features/create-board/ui/create-board-form";
+import { requireUser } from "@/shared/lib/auth/require-user";
+import { BoardsList } from "@/widgets/boards-list/ui/boards-list";
+import { DashboardHeader } from "@/widgets/dashboard-header/ui/dashboard-header";
 
-import { signOut } from "@/app/auth/actions";
-import { createClient } from "@/lib/supabase/server";
-import { Button } from "@workspace/ui/components/button";
+type DashboardPageProps = {
+  searchParams?: Promise<{
+    error?: string;
+  }>;
+};
 
-export default async function DashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export default async function DashboardPage({
+  searchParams,
+}: DashboardPageProps) {
+  const params = await searchParams;
+  const { user } = await requireUser({ redirectTo: "/dashboard" });
+  const { data: boards, error: boardsError } = await getBoards();
 
   return (
     <main className="min-h-svh bg-muted/30 p-6">
-      <section className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-        <div className="flex items-center justify-between gap-4 rounded-lg border bg-background p-5 shadow-sm">
-          <div>
-            <h1 className="text-xl font-semibold">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
-              You are signed in. The next step is building boards and the
-              workspace experience.
-            </p>
-          </div>
-
-          {user ? (
-            <form action={signOut}>
-              <Button type="submit" variant="outline">
-                Sign out
-              </Button>
-            </form>
-          ) : (
-            <Button asChild>
-              <Link href="/auth/login">Sign in</Link>
-            </Button>
-          )}
-        </div>
-
-        <div className="rounded-lg border bg-background p-5 shadow-sm">
-          <h2 className="mb-2 text-sm font-medium">Current session</h2>
-          {user ? (
-            <div className="space-y-1 text-sm text-muted-foreground">
-              <p>User is authenticated.</p>
-              <p>Email: {user.email}</p>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              No session found. Refresh the page or sign in again.
-            </p>
-          )}
-        </div>
+      <section className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+        <DashboardHeader email={user.email} />
+        <CreateBoardForm error={params?.error} />
+        <BoardsList boards={boards ?? []} error={boardsError?.message} />
       </section>
     </main>
   );
