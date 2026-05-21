@@ -1,33 +1,49 @@
 import { notFound } from "next/navigation";
 
 import { getBoard } from "@/entities/board/api/get-board";
+import { getKanbanBoard } from "@/entities/kanban/api/get-kanban-board";
 import { requireUser } from "@/shared/lib/auth/require-user";
+import { AppContainer } from "@/shared/ui/app-container";
 import { BoardHeader } from "@/widgets/board-header/ui/board-header";
-import { KanbanPlaceholder } from "@/widgets/kanban-placeholder/ui/kanban-placeholder";
+import { KanbanBoard } from "@/widgets/kanban-board/ui/kanban-board";
 
 type BoardPageProps = {
   params: Promise<{
     boardId: string;
   }>;
+  searchParams?: Promise<{
+    error?: string;
+  }>;
 };
 
-export default async function BoardPage({ params }: BoardPageProps) {
+export default async function BoardPage({
+  params,
+  searchParams,
+}: BoardPageProps) {
   const { boardId } = await params;
+  const queryParams = await searchParams;
   const { supabase } = await requireUser({
-    redirectTo: `/boards/${boardId}`,
+    redirectTo: "/boards/" + boardId,
   });
-  const { data: board, error } = await getBoard(supabase, boardId);
+  const [boardResult, kanbanResult] = await Promise.all([
+    getBoard(supabase, boardId),
+    getKanbanBoard(supabase, boardId),
+  ]);
 
-  if (error || !board) {
+  if (boardResult.error || !boardResult.data) {
     notFound();
   }
 
   return (
     <main className="min-h-svh bg-muted/30 p-6">
-      <section className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-        <BoardHeader board={board} />
-        <KanbanPlaceholder />
-      </section>
+      <AppContainer>
+        <BoardHeader board={boardResult.data} />
+        <KanbanBoard
+          boardId={boardResult.data.id}
+          columns={kanbanResult.data ?? []}
+          error={queryParams?.error ?? kanbanResult.error?.message}
+        />
+      </AppContainer>
     </main>
   );
 }
