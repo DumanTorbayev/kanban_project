@@ -18,9 +18,9 @@ export default async function RegisterPage({
     <main className="flex min-h-svh items-center justify-center bg-muted/30 p-6">
       <section className="w-full max-w-sm rounded-lg border bg-background p-6 shadow-sm">
         <div className="mb-6 space-y-1">
-          <h1 className="text-xl font-semibold">Регистрация</h1>
+          <h1 className="text-xl font-semibold">Create account</h1>
           <p className="text-sm text-muted-foreground">
-            Создайте аккаунт для Kanban + Time Tracker.
+            Create your Kanban + Time Tracker workspace account.
           </p>
         </div>
 
@@ -32,7 +32,7 @@ export default async function RegisterPage({
 
         <form action={signUp} className="space-y-4">
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium">Имя</span>
+            <span className="text-sm font-medium">Name</span>
             <input
               className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               name="fullName"
@@ -53,7 +53,7 @@ export default async function RegisterPage({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium">Пароль</span>
+            <span className="text-sm font-medium">Password</span>
             <input
               className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               name="password"
@@ -65,17 +65,17 @@ export default async function RegisterPage({
           </label>
 
           <Button className="w-full" type="submit">
-            Создать аккаунт
+            Create account
           </Button>
         </form>
 
         <p className="mt-5 text-center text-sm text-muted-foreground">
-          Уже есть аккаунт?{" "}
+          Already have an account?{" "}
           <Link
             className="font-medium text-foreground underline"
             href="/auth/login"
           >
-            Войти
+            Sign in
           </Link>
         </p>
       </section>

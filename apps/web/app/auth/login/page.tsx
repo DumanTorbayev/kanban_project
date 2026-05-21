@@ -18,9 +18,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <main className="flex min-h-svh items-center justify-center bg-muted/30 p-6">
       <section className="w-full max-w-sm rounded-lg border bg-background p-6 shadow-sm">
         <div className="mb-6 space-y-1">
-          <h1 className="text-xl font-semibold">Вход</h1>
+          <h1 className="text-xl font-semibold">Sign in</h1>
           <p className="text-sm text-muted-foreground">
-            Войдите, чтобы продолжить работу с досками.
+            Sign in to continue managing your boards.
           </p>
         </div>
 
@@ -49,7 +49,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium">Пароль</span>
+            <span className="text-sm font-medium">Password</span>
             <input
               className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               name="password"
@@ -66,17 +66,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           />
 
           <Button className="w-full" type="submit">
-            Войти
+            Sign in
           </Button>
         </form>
 
         <p className="mt-5 text-center text-sm text-muted-foreground">
-          Нет аккаунта?{" "}
+          No account yet?{" "}
           <Link
             className="font-medium text-foreground underline"
             href="/auth/register"
           >
-            Зарегистрироваться
+            Create one
           </Link>
         </p>
       </section>

@@ -17,33 +17,34 @@ export default async function DashboardPage() {
           <div>
             <h1 className="text-xl font-semibold">Dashboard</h1>
             <p className="text-sm text-muted-foreground">
-              Вы вошли в систему. Следующий шаг - доски и рабочее пространство.
+              You are signed in. The next step is building boards and the
+              workspace experience.
             </p>
           </div>
 
           {user ? (
             <form action={signOut}>
               <Button type="submit" variant="outline">
-                Выйти
+                Sign out
               </Button>
             </form>
           ) : (
             <Button asChild>
-              <Link href="/auth/login">Войти</Link>
+              <Link href="/auth/login">Sign in</Link>
             </Button>
           )}
         </div>
 
         <div className="rounded-lg border bg-background p-5 shadow-sm">
-          <h2 className="mb-2 text-sm font-medium">Текущая сессия</h2>
+          <h2 className="mb-2 text-sm font-medium">Current session</h2>
           {user ? (
             <div className="space-y-1 text-sm text-muted-foreground">
-              <p>Пользователь авторизован.</p>
+              <p>User is authenticated.</p>
               <p>Email: {user.email}</p>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Сессия не найдена. Обновите страницу или войдите заново.
+              No session found. Refresh the page or sign in again.
             </p>
           )}
         </div>

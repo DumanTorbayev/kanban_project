@@ -9,17 +9,17 @@ export default function Page() {
         <div className="mb-6 space-y-2">
           <h1 className="text-2xl font-semibold">Kanban + Time Tracker</h1>
           <p className="text-sm text-muted-foreground">
-            Основа проекта готова. Следующий рабочий экран начинается с
-            авторизации.
+            The project foundation is ready. The first product workflow starts
+            with authentication.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link href="/auth/login">Войти</Link>
+            <Link href="/auth/login">Sign in</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/auth/register">Создать аккаунт</Link>
+            <Link href="/auth/register">Create account</Link>
           </Button>
           <Button asChild variant="ghost">
             <Link href="/dashboard">Dashboard</Link>
