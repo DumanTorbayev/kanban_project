@@ -3,6 +3,17 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { getSupabaseEnv } from "./env";
 
+const protectedRoutes = ["/dashboard", "/boards"];
+const authRoutes = ["/auth/login", "/auth/register"];
+
+function isProtectedRoute(pathname: string) {
+  return protectedRoutes.some((route) => pathname.startsWith(route));
+}
+
+function isAuthRoute(pathname: string) {
+  return authRoutes.includes(pathname);
+}
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
     request,
@@ -30,7 +41,30 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getClaims();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const pathname = request.nextUrl.pathname;
+
+  if (isProtectedRoute(pathname) && !user) {
+    const redirectUrl = request.nextUrl.clone();
+    const redirectTo = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+
+    redirectUrl.pathname = "/auth/login";
+    redirectUrl.search = "";
+    redirectUrl.searchParams.set("redirectTo", redirectTo);
+
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (isAuthRoute(pathname) && user) {
+    const redirectUrl = request.nextUrl.clone();
+
+    redirectUrl.pathname = "/dashboard";
+    redirectUrl.search = "";
+
+    return NextResponse.redirect(redirectUrl);
+  }
 
   return response;
 }

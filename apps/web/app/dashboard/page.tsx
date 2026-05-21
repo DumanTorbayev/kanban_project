@@ -17,7 +17,7 @@ export default async function DashboardPage() {
           <div>
             <h1 className="text-xl font-semibold">Dashboard</h1>
             <p className="text-sm text-muted-foreground">
-              Auth подключен. Защиту маршрута добавим следующим шагом.
+              Вы вошли в систему. Следующий шаг - доски и рабочее пространство.
             </p>
           </div>
 
@@ -43,8 +43,7 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Пользователь не авторизован. Сейчас это проверочный экран, а на
-              шаге 6 он станет защищенным маршрутом.
+              Сессия не найдена. Обновите страницу или войдите заново.
             </p>
           )}
         </div>

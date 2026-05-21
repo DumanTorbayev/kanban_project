@@ -17,12 +17,21 @@ function getField(formData: FormData, name: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function normalizeRedirectTo(value: string) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return authRoutes.dashboard;
+  }
+
+  return value;
+}
+
 function redirectWithMessage(
   path: string,
   type: "error" | "message",
   message: string,
+  params?: Record<string, string>,
 ): never {
-  const searchParams = new URLSearchParams({ [type]: message });
+  const searchParams = new URLSearchParams({ [type]: message, ...params });
 
   redirect(`${path}?${searchParams.toString()}`);
 }
@@ -30,9 +39,12 @@ function redirectWithMessage(
 export async function signIn(formData: FormData) {
   const email = getField(formData, "email");
   const password = getField(formData, "password");
+  const redirectTo = normalizeRedirectTo(getField(formData, "redirectTo"));
 
   if (!email || !password) {
-    redirectWithMessage(authRoutes.login, "error", "Введите email и пароль.");
+    redirectWithMessage(authRoutes.login, "error", "Введите email и пароль.", {
+      redirectTo,
+    });
   }
 
   const supabase = await createClient();
@@ -42,10 +54,12 @@ export async function signIn(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage(authRoutes.login, "error", error.message);
+    redirectWithMessage(authRoutes.login, "error", error.message, {
+      redirectTo,
+    });
   }
 
-  redirect(authRoutes.dashboard);
+  redirect(redirectTo);
 }
 
 export async function signUp(formData: FormData) {
