@@ -42,9 +42,14 @@ export async function signIn(formData: FormData) {
   const redirectTo = normalizeRedirectTo(getField(formData, "redirectTo"));
 
   if (!email || !password) {
-    redirectWithMessage(authRoutes.login, "error", "Введите email и пароль.", {
-      redirectTo,
-    });
+    redirectWithMessage(
+      authRoutes.login,
+      "error",
+      "Enter email and password.",
+      {
+        redirectTo,
+      },
+    );
   }
 
   const supabase = await createClient();
@@ -71,7 +76,7 @@ export async function signUp(formData: FormData) {
     redirectWithMessage(
       authRoutes.register,
       "error",
-      "Введите email и пароль.",
+      "Enter email and password.",
     );
   }
 
@@ -79,7 +84,7 @@ export async function signUp(formData: FormData) {
     redirectWithMessage(
       authRoutes.register,
       "error",
-      "Пароль должен быть не короче 6 символов.",
+      "Password must be at least 6 characters long.",
     );
   }
 
@@ -108,7 +113,7 @@ export async function signUp(formData: FormData) {
   redirectWithMessage(
     authRoutes.login,
     "message",
-    "Аккаунт создан. Проверьте email и подтвердите регистрацию.",
+    "Account created. Check your email to confirm registration.",
   );
 }
 
