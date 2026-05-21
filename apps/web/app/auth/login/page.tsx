@@ -7,6 +7,7 @@ type LoginPageProps = {
   searchParams?: Promise<{
     error?: string;
     message?: string;
+    redirectTo?: string;
   }>;
 };
 
@@ -57,6 +58,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               required
             />
           </label>
+
+          <input
+            name="redirectTo"
+            type="hidden"
+            value={params?.redirectTo ?? "/dashboard"}
+          />
 
           <Button className="w-full" type="submit">
             Войти
