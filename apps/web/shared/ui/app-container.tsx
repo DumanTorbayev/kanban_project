@@ -1,13 +1,11 @@
-import { type ReactNode } from "react";
+import { type PropsWithChildren } from "react";
 
 import { cn } from "@workspace/ui/lib/utils";
 
-type AppContainerProps = {
-  children: ReactNode;
-  className?: string;
-};
-
-export function AppContainer({ children, className }: AppContainerProps) {
+export const AppContainer = ({
+  children,
+  className,
+}: PropsWithChildren<{ className?: string }>) => {
   return (
     <section
       className={cn("mx-auto flex w-full max-w-400 flex-col gap-6", className)}
@@ -15,4 +13,4 @@ export function AppContainer({ children, className }: AppContainerProps) {
       {children}
     </section>
   );
-}
+};

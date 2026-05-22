@@ -3,15 +3,13 @@ import Link from "next/link";
 import { signUp } from "@/app/auth/actions";
 import { Button } from "@workspace/ui/components/button";
 
-type RegisterPageProps = {
+interface Props {
   searchParams?: Promise<{
     error?: string;
   }>;
-};
+}
 
-export default async function RegisterPage({
-  searchParams,
-}: RegisterPageProps) {
+const RegisterPage = async ({ searchParams }: Props) => {
   const params = await searchParams;
 
   return (
@@ -81,4 +79,6 @@ export default async function RegisterPage({
       </section>
     </main>
   );
-}
+};
+
+export default RegisterPage;

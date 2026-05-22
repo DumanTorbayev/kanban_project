@@ -3,15 +3,15 @@ import Link from "next/link";
 import { signIn } from "@/app/auth/actions";
 import { Button } from "@workspace/ui/components/button";
 
-type LoginPageProps = {
+interface Props {
   searchParams?: Promise<{
     error?: string;
     message?: string;
     redirectTo?: string;
   }>;
-};
+}
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
+const LoginPage = async ({ searchParams }: Props) => {
   const params = await searchParams;
 
   return (
@@ -82,4 +82,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       </section>
     </main>
   );
-}
+};
+
+export default LoginPage;

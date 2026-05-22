@@ -4,12 +4,12 @@ import { Button } from "@workspace/ui/components/button";
 
 import { createCard } from "../actions/create-card";
 
-type CreateCardFormProps = {
+interface Props {
   boardId: string;
   columnId: string;
-};
+}
 
-export function CreateCardForm({ boardId, columnId }: CreateCardFormProps) {
+export const CreateCardForm = ({ boardId, columnId }: Props) => {
   return (
     <form action={createCard} className="space-y-2">
       <input name="boardId" type="hidden" value={boardId} />
@@ -39,4 +39,4 @@ export function CreateCardForm({ boardId, columnId }: CreateCardFormProps) {
       </Button>
     </form>
   );
-}
+};

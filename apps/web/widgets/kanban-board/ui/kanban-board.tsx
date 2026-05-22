@@ -3,13 +3,13 @@ import { CreateKanbanColumnForm } from "@/features/create-kanban-column/ui/creat
 
 import { KanbanDndBoard } from "./kanban-dnd-board";
 
-type KanbanBoardProps = {
+interface Props {
   boardId: string;
   columns: KanbanColumnWithCards[];
   error?: string;
-};
+}
 
-export function KanbanBoard({ boardId, columns, error }: KanbanBoardProps) {
+export const KanbanBoard = ({ boardId, columns, error }: Props) => {
   const hasColumns = columns.length > 0;
 
   return (
@@ -36,4 +36,4 @@ export function KanbanBoard({ boardId, columns, error }: KanbanBoardProps) {
       ) : null}
     </section>
   );
-}
+};

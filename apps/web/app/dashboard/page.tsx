@@ -5,15 +5,13 @@ import { AppContainer } from "@/shared/ui/app-container";
 import { BoardsList } from "@/widgets/boards-list/ui/boards-list";
 import { DashboardHeader } from "@/widgets/dashboard-header/ui/dashboard-header";
 
-type DashboardPageProps = {
+interface Props {
   searchParams?: Promise<{
     error?: string;
   }>;
-};
+}
 
-export default async function DashboardPage({
-  searchParams,
-}: DashboardPageProps) {
+const DashboardPage = async ({ searchParams }: Props) => {
   const params = await searchParams;
   const { user } = await requireUser({ redirectTo: "/dashboard" });
   const { data: boards, error: boardsError } = await getBoards();
@@ -27,4 +25,6 @@ export default async function DashboardPage({
       </AppContainer>
     </main>
   );
-}
+};
+
+export default DashboardPage;

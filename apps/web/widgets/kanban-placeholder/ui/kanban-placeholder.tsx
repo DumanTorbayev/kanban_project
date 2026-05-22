@@ -1,4 +1,4 @@
-export function KanbanPlaceholder() {
+export const KanbanPlaceholder = () => {
   return (
     <section className="rounded-lg border bg-background p-5 shadow-sm">
       <div className="rounded-md border border-dashed p-8 text-center">
@@ -9,4 +9,4 @@ export function KanbanPlaceholder() {
       </div>
     </section>
   );
-}
+};

@@ -9,12 +9,12 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
   day: "numeric",
 });
 
-type KanbanCardProps = {
+interface Props {
   card: KanbanCardModel;
   className?: string;
-};
+}
 
-export function KanbanCard({ card, className }: KanbanCardProps) {
+export const KanbanCard = ({ card, className }: Props) => {
   return (
     <article
       className={cn("rounded-md border bg-background p-3 shadow-xs", className)}
@@ -31,4 +31,4 @@ export function KanbanCard({ card, className }: KanbanCardProps) {
       </div>
     </article>
   );
-}
+};
