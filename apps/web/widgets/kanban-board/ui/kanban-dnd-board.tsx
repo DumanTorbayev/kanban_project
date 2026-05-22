@@ -20,6 +20,7 @@ import { type KanbanCard as KanbanCardModel } from "@/entities/kanban/model/type
 import { kanbanBoardQueryKey } from "@/entities/kanban/model/query-keys";
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import { KanbanCard } from "@/entities/kanban/ui/kanban-card";
+import { CreateCardDialog } from "@/features/create-card/ui/create-card-dialog";
 import {
   moveCard,
   type MoveCardInput,
@@ -49,6 +50,11 @@ export const KanbanDndBoard = ({ boardId, columns: initialColumns }: Props) => {
     queryKey,
   });
   const [activeCard, setActiveCard] = useState<KanbanCardModel | null>(null);
+  const [createCardColumnId, setCreateCardColumnId] = useState<string | null>(
+    null,
+  );
+  const [createCardDialogKey, setCreateCardDialogKey] = useState(0);
+  const [createCardOpen, setCreateCardOpen] = useState(false);
   const [moveError, setMoveError] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -101,6 +107,20 @@ export const KanbanDndBoard = ({ boardId, columns: initialColumns }: Props) => {
     queryClient.setQueryData(queryKey, initialColumns);
   }, [initialColumns, queryClient, queryKey]);
 
+  const handleCreateCard = (columnId: string) => {
+    setCreateCardColumnId(columnId);
+    setCreateCardDialogKey((currentKey) => currentKey + 1);
+    setCreateCardOpen(true);
+  };
+
+  const handleCreateCardOpenChange = (open: boolean) => {
+    setCreateCardOpen(open);
+
+    if (!open) {
+      setCreateCardColumnId(null);
+    }
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
     const activeId = String(event.active.id);
     const location = findCardLocation(columns, activeId);
@@ -149,13 +169,13 @@ export const KanbanDndBoard = ({ boardId, columns: initialColumns }: Props) => {
         ) : null}
 
         <div className="-mx-1 overflow-x-auto px-1 pb-2">
-          <div className="flex min-h-112 gap-4">
+          <div className="flex min-h-112 min-w-full gap-4">
             {columns.map((column) => (
               <KanbanColumnPanel
-                boardId={boardId}
                 column={column}
                 isMutating={moveCardMutation.isPending}
                 key={column.id}
+                onCreateCard={handleCreateCard}
               />
             ))}
           </div>
@@ -169,6 +189,15 @@ export const KanbanDndBoard = ({ boardId, columns: initialColumns }: Props) => {
           </div>
         ) : null}
       </DragOverlay>
+
+      <CreateCardDialog
+        boardId={boardId}
+        key={createCardDialogKey}
+        columns={columns}
+        onOpenChange={handleCreateCardOpenChange}
+        open={createCardOpen}
+        selectedColumnId={createCardColumnId}
+      />
     </DndContext>
   );
 };
