@@ -1,3 +1,9 @@
+"use client";
+
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+
+import { boardsQueryKey } from "@/entities/board/model/query-keys";
 import { type BoardListItem } from "@/entities/board/model/types";
 import { BoardCard } from "@/entities/board/ui/board-card";
 
@@ -7,7 +13,18 @@ interface Props {
 }
 
 export const BoardsList = ({ boards, error }: Props) => {
-  const hasBoards = boards.length > 0;
+  const queryClient = useQueryClient();
+  const { data: currentBoards = boards } = useQuery({
+    enabled: false,
+    initialData: boards,
+    queryFn: () => Promise.resolve(boards),
+    queryKey: boardsQueryKey,
+  });
+  const hasBoards = currentBoards.length > 0;
+
+  useEffect(() => {
+    queryClient.setQueryData(boardsQueryKey, boards);
+  }, [boards, queryClient]);
 
   return (
     <section className="rounded-lg border bg-background p-5 shadow-sm">
@@ -19,7 +36,7 @@ export const BoardsList = ({ boards, error }: Props) => {
           </p>
         </div>
         <span className="text-sm text-muted-foreground">
-          {boards.length} total
+          {currentBoards.length} total
         </span>
       </div>
 
@@ -40,7 +57,7 @@ export const BoardsList = ({ boards, error }: Props) => {
 
       {!error && hasBoards ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {boards.map((board) => (
+          {currentBoards.map((board) => (
             <BoardCard board={board} key={board.id} />
           ))}
         </div>

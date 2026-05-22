@@ -1,58 +1,56 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { getNextPosition } from "@/entities/kanban/lib/position";
+import { type KanbanColumn } from "@/entities/kanban/model/types";
 import { requireUser } from "@/shared/lib/auth/require-user";
 
-function redirectWithBoardError(boardId: string, message: string): never {
-  const searchParams = new URLSearchParams({ error: message });
+export type CreateKanbanColumnInput = {
+  boardId: string;
+  title: string;
+};
 
-  redirect("/boards/" + boardId + "?" + searchParams.toString());
+function assertRequired(value: string, message: string) {
+  if (!value.trim()) {
+    throw new Error(message);
+  }
 }
 
-function redirectWithDashboardError(message: string): never {
-  const searchParams = new URLSearchParams({ error: message });
+export async function createKanbanColumn(input: CreateKanbanColumnInput) {
+  assertRequired(input.boardId, "Board id is required.");
+  assertRequired(input.title, "Column title is required.");
 
-  redirect("/dashboard?" + searchParams.toString());
-}
-
-export async function createKanbanColumn(formData: FormData) {
-  const boardId = String(formData.get("boardId") ?? "").trim();
-  const title = String(formData.get("title") ?? "").trim();
-
-  if (!boardId) {
-    redirectWithDashboardError("Board id is required.");
-  }
-
-  if (!title) {
-    redirectWithBoardError(boardId, "Column title is required.");
-  }
-
-  const { supabase } = await requireUser({ redirectTo: "/boards/" + boardId });
+  const { supabase } = await requireUser({
+    redirectTo: "/boards/" + input.boardId,
+  });
   const { data: lastColumn, error: positionError } = await supabase
     .from("board_columns")
     .select("position")
-    .eq("board_id", boardId)
+    .eq("board_id", input.boardId)
     .order("position", { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (positionError) {
-    redirectWithBoardError(boardId, positionError.message);
+    throw new Error(positionError.message);
   }
 
-  const { error } = await supabase.from("board_columns").insert({
-    board_id: boardId,
-    title,
-    position: getNextPosition(lastColumn?.position),
-  });
+  const { data, error } = await supabase
+    .from("board_columns")
+    .insert({
+      board_id: input.boardId,
+      title: input.title.trim(),
+      position: getNextPosition(lastColumn?.position),
+    })
+    .select("id, board_id, title, position, created_at, updated_at")
+    .single();
 
   if (error) {
-    redirectWithBoardError(boardId, error.message);
+    throw new Error(error.message);
   }
 
-  revalidatePath("/boards/" + boardId);
-  redirect("/boards/" + boardId);
+  revalidatePath("/boards/" + input.boardId);
+
+  return data as KanbanColumn;
 }

@@ -1,33 +1,38 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
+import { type BoardListItem } from "@/entities/board/model/types";
 import { requireUser } from "@/shared/lib/auth/require-user";
 
-function redirectWithError(message: string): never {
-  const searchParams = new URLSearchParams({ error: message });
+export type CreateBoardInput = {
+  title: string;
+};
 
-  redirect(`/dashboard?${searchParams.toString()}`);
+function assertRequired(value: string, message: string) {
+  if (!value.trim()) {
+    throw new Error(message);
+  }
 }
 
-export async function createBoard(formData: FormData) {
-  const title = String(formData.get("title") ?? "").trim();
-
-  if (!title) {
-    redirectWithError("Board title is required.");
-  }
+export async function createBoard(input: CreateBoardInput) {
+  assertRequired(input.title, "Board title is required.");
 
   const { supabase, user } = await requireUser({ redirectTo: "/dashboard" });
-  const { error } = await supabase.from("boards").insert({
-    title,
-    owner_id: user.id,
-  });
+  const { data, error } = await supabase
+    .from("boards")
+    .insert({
+      title: input.title.trim(),
+      owner_id: user.id,
+    })
+    .select("id, title, created_at")
+    .single();
 
   if (error) {
-    redirectWithError(error.message);
+    throw new Error(error.message);
   }
 
   revalidatePath("/dashboard");
-  redirect("/dashboard");
+
+  return data as BoardListItem;
 }

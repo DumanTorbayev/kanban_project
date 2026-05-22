@@ -1,70 +1,65 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { getNextPosition } from "@/entities/kanban/lib/position";
+import { type KanbanCard } from "@/entities/kanban/model/types";
 import { requireUser } from "@/shared/lib/auth/require-user";
 
-function redirectWithBoardError(boardId: string, message: string): never {
-  const searchParams = new URLSearchParams({ error: message });
+export type CreateCardInput = {
+  boardId: string;
+  columnId: string;
+  title: string;
+  description: string | null;
+};
 
-  redirect("/boards/" + boardId + "?" + searchParams.toString());
+function assertRequired(value: string, message: string) {
+  if (!value.trim()) {
+    throw new Error(message);
+  }
 }
 
-function redirectWithDashboardError(message: string): never {
-  const searchParams = new URLSearchParams({ error: message });
-
-  redirect("/dashboard?" + searchParams.toString());
-}
-
-export async function createCard(formData: FormData) {
-  const boardId = String(formData.get("boardId") ?? "").trim();
-  const columnId = String(formData.get("columnId") ?? "").trim();
-  const title = String(formData.get("title") ?? "").trim();
-  const description = String(formData.get("description") ?? "").trim();
-
-  if (!boardId) {
-    redirectWithDashboardError("Board id is required.");
-  }
-
-  if (!columnId) {
-    redirectWithBoardError(boardId, "Column id is required.");
-  }
-
-  if (!title) {
-    redirectWithBoardError(boardId, "Card title is required.");
-  }
+export async function createCard(input: CreateCardInput) {
+  assertRequired(input.boardId, "Board id is required.");
+  assertRequired(input.columnId, "Column id is required.");
+  assertRequired(input.title, "Card title is required.");
 
   const { supabase, user } = await requireUser({
-    redirectTo: "/boards/" + boardId,
+    redirectTo: "/boards/" + input.boardId,
   });
   const { data: lastCard, error: positionError } = await supabase
     .from("cards")
     .select("position")
-    .eq("board_id", boardId)
-    .eq("column_id", columnId)
+    .eq("board_id", input.boardId)
+    .eq("column_id", input.columnId)
     .order("position", { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (positionError) {
-    redirectWithBoardError(boardId, positionError.message);
+    throw new Error(positionError.message);
   }
 
-  const { error } = await supabase.from("cards").insert({
-    board_id: boardId,
-    column_id: columnId,
-    title,
-    description: description || null,
-    position: getNextPosition(lastCard?.position),
-    created_by: user.id,
-  });
+  const { data, error } = await supabase
+    .from("cards")
+    .insert({
+      board_id: input.boardId,
+      column_id: input.columnId,
+      title: input.title.trim(),
+      description: input.description?.trim() || null,
+      position: getNextPosition(lastCard?.position),
+      created_by: user.id,
+    })
+    .select(
+      "id, board_id, column_id, title, description, position, created_by, assignee_id, created_at, updated_at",
+    )
+    .single();
 
   if (error) {
-    redirectWithBoardError(boardId, error.message);
+    throw new Error(error.message);
   }
 
-  revalidatePath("/boards/" + boardId);
-  redirect("/boards/" + boardId);
+  revalidatePath("/boards/" + input.boardId);
+
+  return data as KanbanCard;
 }
