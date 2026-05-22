@@ -48,16 +48,23 @@ export function replaceColumnIdInBoard(
   column: KanbanColumn,
 ) {
   let replaced = false;
-  const nextColumns = columns.map((currentColumn) => {
-    if (currentColumn.id !== columnId) {
-      return currentColumn;
+  const nextColumns = columns.flatMap((currentColumn) => {
+    if (currentColumn.id === columnId) {
+      replaced = true;
+
+      return [
+        {
+          ...column,
+          cards: currentColumn.cards,
+        },
+      ];
     }
 
-    replaced = true;
-    return {
-      ...column,
-      cards: currentColumn.cards,
-    };
+    if (currentColumn.id === column.id) {
+      return [];
+    }
+
+    return [currentColumn];
   });
 
   if (!replaced) {

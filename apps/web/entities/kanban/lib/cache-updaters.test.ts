@@ -130,6 +130,28 @@ describe("kanban cache updaters", () => {
     });
   });
 
+  it("deduplicates a column when the persisted record arrives before server success", () => {
+    const optimisticColumn = createColumn({
+      id: "optimistic-column-1",
+      position: 2048,
+      title: "Review",
+    });
+    const persistedColumn = createColumn({
+      id: "review",
+      position: 2048,
+      title: "Review",
+    });
+
+    const result = replaceColumnIdInBoard(
+      [optimisticColumn, persistedColumn],
+      "optimistic-column-1",
+      toColumn(persistedColumn),
+    );
+
+    expect(result).toHaveLength(1);
+    expect(result[0]?.id).toBe("review");
+  });
+
   it("removes a column from the board", () => {
     const todo = createColumn({
       id: "todo",

@@ -30,6 +30,7 @@ import {
 import { getErrorMessage } from "@/shared/lib/errors/get-error-message";
 
 import { findCardLocation, moveCardInColumns } from "../lib/dnd";
+import { useKanbanBoardRealtime } from "../model/use-kanban-board-realtime";
 import { KanbanColumnPanel } from "./kanban-column-panel";
 
 interface Props {
@@ -59,6 +60,10 @@ export const KanbanDndBoard = ({ boardId, columns: initialColumns }: Props) => {
     queryFn: () => Promise.resolve(initialColumns),
     queryKey,
   });
+  useKanbanBoardRealtime({
+    boardId,
+  });
+
   const [activeCard, setActiveCard] = useState<KanbanCardModel | null>(null);
   const [createCardColumnId, setCreateCardColumnId] = useState<string | null>(
     null,
