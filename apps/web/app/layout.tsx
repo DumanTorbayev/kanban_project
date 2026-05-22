@@ -13,25 +13,23 @@ const fontMono = Geist_Mono({
   variable: "--font-mono",
 });
 
-const RootLayout = ({ children }: Readonly<PropsWithChildren>) => {
-  return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={cn(
-        "antialiased",
-        fontMono.variable,
-        "font-sans",
-        geist.variable,
-      )}
-    >
-      <body>
-        <ThemeProvider>
-          <QueryProvider>{children}</QueryProvider>
-        </ThemeProvider>
-      </body>
-    </html>
-  );
-};
+const RootLayout = ({ children }: Readonly<PropsWithChildren>) => (
+  <html
+    lang="en"
+    suppressHydrationWarning
+    className={cn(
+      "antialiased",
+      fontMono.variable,
+      "font-sans",
+      geist.variable,
+    )}
+  >
+    <body>
+      <ThemeProvider>
+        <QueryProvider>{children}</QueryProvider>
+      </ThemeProvider>
+    </body>
+  </html>
+);
 
 export default RootLayout;
