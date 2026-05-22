@@ -12,17 +12,19 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { type KanbanCard as KanbanCardModel } from "@/entities/kanban/model/types";
+import { kanbanBoardQueryKey } from "@/entities/kanban/model/query-keys";
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import { KanbanCard } from "@/entities/kanban/ui/kanban-card";
 import {
   moveCard,
   type MoveCardInput,
 } from "@/features/move-card/actions/move-card";
+import { getErrorMessage } from "@/shared/lib/errors/get-error-message";
 
 import { findCardLocation, moveCardInColumns } from "../lib/dnd";
 import { KanbanColumnPanel } from "./kanban-column-panel";
@@ -32,9 +34,20 @@ interface Props {
   columns: KanbanColumnWithCards[];
 }
 
-export const KanbanDndBoard = ({ boardId, columns }: Props) => {
+type MoveCardMutationInput = MoveCardInput & {
+  nextColumns: KanbanColumnWithCards[];
+};
+
+export const KanbanDndBoard = ({ boardId, columns: initialColumns }: Props) => {
   const router = useRouter();
-  const [localColumns, setLocalColumns] = useState(columns);
+  const queryClient = useQueryClient();
+  const queryKey = useMemo(() => kanbanBoardQueryKey(boardId), [boardId]);
+  const { data: columns = initialColumns } = useQuery({
+    enabled: false,
+    initialData: initialColumns,
+    queryFn: () => Promise.resolve(initialColumns),
+    queryKey,
+  });
   const [activeCard, setActiveCard] = useState<KanbanCardModel | null>(null);
   const [moveError, setMoveError] = useState<string | null>(null);
   const sensors = useSensors(
@@ -47,8 +60,37 @@ export const KanbanDndBoard = ({ boardId, columns }: Props) => {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
-  const moveCardMutation = useMutation({
-    mutationFn: (input: MoveCardInput) => moveCard(input),
+  const moveCardMutation = useMutation<
+    MoveCardInput,
+    Error,
+    MoveCardMutationInput,
+    { previousColumns?: KanbanColumnWithCards[] }
+  >({
+    mutationFn: (input) =>
+      moveCard({
+        boardId: input.boardId,
+        cardId: input.cardId,
+        columnId: input.columnId,
+        position: input.position,
+      }),
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousColumns =
+        queryClient.getQueryData<KanbanColumnWithCards[]>(queryKey);
+
+      queryClient.setQueryData(queryKey, input.nextColumns);
+      setMoveError(null);
+
+      return { previousColumns };
+    },
+    onError: (error, _input, context) => {
+      if (context?.previousColumns) {
+        queryClient.setQueryData(queryKey, context.previousColumns);
+      }
+
+      setMoveError(getErrorMessage(error, "Could not move card."));
+    },
     onSuccess: () => {
       setMoveError(null);
       router.refresh();
@@ -56,12 +98,12 @@ export const KanbanDndBoard = ({ boardId, columns }: Props) => {
   });
 
   useEffect(() => {
-    setLocalColumns(columns);
-  }, [columns]);
+    queryClient.setQueryData(queryKey, initialColumns);
+  }, [initialColumns, queryClient, queryKey]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const activeId = String(event.active.id);
-    const location = findCardLocation(localColumns, activeId);
+    const location = findCardLocation(columns, activeId);
 
     setMoveError(null);
     setActiveCard(location?.card ?? null);
@@ -77,30 +119,19 @@ export const KanbanDndBoard = ({ boardId, columns }: Props) => {
       return;
     }
 
-    const previousColumns = localColumns;
-    const nextState = moveCardInColumns(previousColumns, activeId, overId);
+    const nextState = moveCardInColumns(columns, activeId, overId);
 
     if (!nextState) {
       return;
     }
 
-    setLocalColumns(nextState.columns);
-    moveCardMutation.mutate(
-      {
-        boardId,
-        cardId: nextState.cardId,
-        columnId: nextState.columnId,
-        position: nextState.position,
-      },
-      {
-        onError: (error) => {
-          setLocalColumns(previousColumns);
-          setMoveError(
-            error instanceof Error ? error.message : "Could not move card.",
-          );
-        },
-      },
-    );
+    moveCardMutation.mutate({
+      boardId,
+      cardId: nextState.cardId,
+      columnId: nextState.columnId,
+      nextColumns: nextState.columns,
+      position: nextState.position,
+    });
   };
 
   return (
@@ -119,7 +150,7 @@ export const KanbanDndBoard = ({ boardId, columns }: Props) => {
 
         <div className="-mx-1 overflow-x-auto px-1 pb-2">
           <div className="flex min-h-112 gap-4">
-            {localColumns.map((column) => (
+            {columns.map((column) => (
               <KanbanColumnPanel
                 boardId={boardId}
                 column={column}

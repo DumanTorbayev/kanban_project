@@ -8,6 +8,7 @@ import {
 
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import { CreateCardForm } from "@/features/create-card/ui/create-card-form";
+import { ColumnActionsMenu } from "@/features/manage-kanban-column/ui/column-actions-menu";
 import { cn } from "@workspace/ui/lib/utils";
 
 import { SortableKanbanCard } from "./sortable-kanban-card";
@@ -29,10 +30,13 @@ export const KanbanColumnPanel = ({ boardId, column, isMutating }: Props) => {
       ref={setNodeRef}
     >
       <header className="mb-3 flex items-center justify-between gap-2">
-        <h2 className="truncate text-sm font-semibold">{column.title}</h2>
-        <span className="rounded-md border bg-background px-2 py-0.5 text-xs text-muted-foreground">
-          {column.cards.length}
-        </span>
+        <div className="flex min-w-0 items-center gap-2">
+          <h2 className="truncate text-sm font-semibold">{column.title}</h2>
+          <span className="rounded-md border bg-background px-2 py-0.5 text-xs text-muted-foreground">
+            {column.cards.length}
+          </span>
+        </div>
+        <ColumnActionsMenu column={column} disabled={isMutating} />
       </header>
 
       <SortableContext

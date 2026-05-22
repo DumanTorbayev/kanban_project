@@ -6,9 +6,13 @@ import { GripVertical } from "lucide-react";
 
 import { type KanbanCard as KanbanCardModel } from "@/entities/kanban/model/types";
 import { KanbanCard } from "@/entities/kanban/ui/kanban-card";
+import { CardActionsMenu } from "@/features/manage-card/ui/card-actions-menu";
 
 const dragHandleClassName =
-  "absolute top-2 right-2 z-10 inline-flex size-6 cursor-pointer items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-30";
+  "absolute top-2 right-9 z-10 inline-flex size-6 cursor-pointer items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-30";
+
+const cardActionsClassName =
+  "absolute top-2 right-2 z-20 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100";
 
 interface Props {
   card: KanbanCardModel;
@@ -49,7 +53,12 @@ export const SortableKanbanCard = ({ card, disabled }: Props) => {
         >
           <GripVertical aria-hidden="true" className="size-4" />
         </button>
-        <KanbanCard card={card} className="pr-9" />
+        <CardActionsMenu
+          card={card}
+          className={cardActionsClassName}
+          disabled={disabled}
+        />
+        <KanbanCard card={card} className="pr-16" />
       </div>
     </div>
   );
