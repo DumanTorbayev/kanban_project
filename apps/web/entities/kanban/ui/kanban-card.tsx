@@ -1,5 +1,7 @@
 import { Clock3 } from "lucide-react";
 
+import { cn } from "@workspace/ui/lib/utils";
+
 import { type KanbanCard as KanbanCardModel } from "../model/types";
 
 const dateFormatter = new Intl.DateTimeFormat("en", {
@@ -9,11 +11,14 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
 
 type KanbanCardProps = {
   card: KanbanCardModel;
+  className?: string;
 };
 
-export function KanbanCard({ card }: KanbanCardProps) {
+export function KanbanCard({ card, className }: KanbanCardProps) {
   return (
-    <article className="rounded-md border bg-background p-3 shadow-xs">
+    <article
+      className={cn("rounded-md border bg-background p-3 shadow-xs", className)}
+    >
       <h3 className="text-sm leading-5 font-medium">{card.title}</h3>
       {card.description ? (
         <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
