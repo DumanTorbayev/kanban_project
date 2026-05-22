@@ -10,10 +10,7 @@ type AppContainerProps = {
 export function AppContainer({ children, className }: AppContainerProps) {
   return (
     <section
-      className={cn(
-        "mx-auto flex w-full max-w-[100rem] flex-col gap-6",
-        className,
-      )}
+      className={cn("mx-auto flex w-full max-w-400 flex-col gap-6", className)}
     >
       {children}
     </section>
