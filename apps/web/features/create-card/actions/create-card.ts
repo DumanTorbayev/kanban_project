@@ -32,7 +32,9 @@ export async function createCard(input: CreateCardInput) {
     .select("position")
     .eq("board_id", input.boardId)
     .eq("column_id", input.columnId)
-    .order("position", { ascending: false })
+    .order("position", {
+      ascending: false,
+    })
     .limit(1)
     .maybeSingle();
 

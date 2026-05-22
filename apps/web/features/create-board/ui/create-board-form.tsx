@@ -29,7 +29,9 @@ export const CreateBoardForm = () => {
   >({
     mutationFn: createBoard,
     onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey: boardsQueryKey });
+      await queryClient.cancelQueries({
+        queryKey: boardsQueryKey,
+      });
 
       const previousBoards =
         queryClient.getQueryData<BoardListItem[]>(boardsQueryKey);
@@ -46,7 +48,10 @@ export const CreateBoardForm = () => {
       ]);
       setError(null);
 
-      return { optimisticBoardId, previousBoards };
+      return {
+        optimisticBoardId,
+        previousBoards,
+      };
     },
     onError: (mutationError, _input, context) => {
       queryClient.setQueryData(boardsQueryKey, context?.previousBoards ?? []);
@@ -83,7 +88,9 @@ export const CreateBoardForm = () => {
       return;
     }
 
-    mutation.mutate({ title });
+    mutation.mutate({
+      title,
+    });
   };
 
   return (

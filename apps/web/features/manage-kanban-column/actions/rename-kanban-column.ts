@@ -27,7 +27,9 @@ export async function renameKanbanColumn(input: RenameKanbanColumnInput) {
   });
   const { data, error } = await supabase
     .from("board_columns")
-    .update({ title: input.title.trim() })
+    .update({
+      title: input.title.trim(),
+    })
     .eq("id", input.columnId)
     .eq("board_id", input.boardId)
     .select("id, board_id, title, position, created_at, updated_at")

@@ -18,7 +18,9 @@ function assertRequired(value: string, message: string) {
 export async function createBoard(input: CreateBoardInput) {
   assertRequired(input.title, "Board title is required.");
 
-  const { supabase, user } = await requireUser({ redirectTo: "/dashboard" });
+  const { supabase, user } = await requireUser({
+    redirectTo: "/dashboard",
+  });
   const { data, error } = await supabase
     .from("boards")
     .insert({

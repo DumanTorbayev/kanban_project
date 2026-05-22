@@ -25,7 +25,9 @@ export async function renameBoard(input: RenameBoardInput) {
   });
   const { data, error } = await supabase
     .from("boards")
-    .update({ title: input.title.trim() })
+    .update({
+      title: input.title.trim(),
+    })
     .eq("id", input.boardId)
     .select("id, title, created_at")
     .single();

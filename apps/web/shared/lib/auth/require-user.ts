@@ -15,10 +15,15 @@ export async function requireUser(options: RequireUserOptions = {}) {
 
   if (error || !user) {
     const redirectTo = options.redirectTo ?? "/dashboard";
-    const searchParams = new URLSearchParams({ redirectTo });
+    const searchParams = new URLSearchParams({
+      redirectTo,
+    });
 
     redirect(`/auth/login?${searchParams.toString()}`);
   }
 
-  return { supabase, user };
+  return {
+    supabase,
+    user,
+  };
 }

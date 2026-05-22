@@ -38,7 +38,9 @@ export const EditCardDialog = ({ card, onOpenChange, open }: Props) => {
   >({
     mutationFn: updateCard,
     onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({
+        queryKey,
+      });
 
       const previousColumns =
         queryClient.getQueryData<KanbanColumnWithCards[]>(queryKey);
@@ -54,7 +56,9 @@ export const EditCardDialog = ({ card, onOpenChange, open }: Props) => {
       );
       setError(null);
 
-      return { previousColumns };
+      return {
+        previousColumns,
+      };
     },
     onError: (mutationError, _input, context) => {
       if (context?.previousColumns) {

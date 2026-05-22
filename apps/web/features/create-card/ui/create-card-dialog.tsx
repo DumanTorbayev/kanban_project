@@ -56,7 +56,9 @@ export const CreateCardDialog = ({
   >({
     mutationFn: createCard,
     onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({
+        queryKey,
+      });
 
       const previousColumns =
         queryClient.getQueryData<KanbanColumnWithCards[]>(queryKey);
@@ -87,7 +89,10 @@ export const CreateCardDialog = ({
       );
       setError(null);
 
-      return { optimisticCardId, previousColumns };
+      return {
+        optimisticCardId,
+        previousColumns,
+      };
     },
     onError: (mutationError, _input, context) => {
       queryClient.setQueryData(queryKey, context?.previousColumns ?? []);

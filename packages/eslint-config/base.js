@@ -30,3 +30,23 @@ export const config = [
     ignores: ["dist/**", ".next/**", "**/.turbo/**", "**/coverage/**"],
   },
 ];
+
+export const multilineObjectConfig = {
+  rules: {
+    "object-curly-newline": [
+      "warn",
+      {
+        ObjectExpression: {
+          minProperties: 1,
+          multiline: true,
+        },
+      },
+    ],
+    "object-property-newline": [
+      "warn",
+      {
+        allowAllPropertiesOnSameLine: false,
+      },
+    ],
+  },
+};
