@@ -80,7 +80,9 @@ export const KanbanDndBoard = ({ boardId, columns: initialColumns }: Props) => {
         position: input.position,
       }),
     onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({
+        queryKey,
+      });
 
       const previousColumns =
         queryClient.getQueryData<KanbanColumnWithCards[]>(queryKey);
@@ -88,7 +90,9 @@ export const KanbanDndBoard = ({ boardId, columns: initialColumns }: Props) => {
       queryClient.setQueryData(queryKey, input.nextColumns);
       setMoveError(null);
 
-      return { previousColumns };
+      return {
+        previousColumns,
+      };
     },
     onError: (error, _input, context) => {
       if (context?.previousColumns) {

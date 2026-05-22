@@ -37,7 +37,9 @@ export const DeleteCardDialog = ({ card, onOpenChange, open }: Props) => {
   >({
     mutationFn: deleteCard,
     onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({
+        queryKey,
+      });
 
       const previousColumns =
         queryClient.getQueryData<KanbanColumnWithCards[]>(queryKey);
@@ -47,7 +49,9 @@ export const DeleteCardDialog = ({ card, onOpenChange, open }: Props) => {
       );
       setError(null);
 
-      return { previousColumns };
+      return {
+        previousColumns,
+      };
     },
     onError: (mutationError, _input, context) => {
       if (context?.previousColumns) {
@@ -69,7 +73,10 @@ export const DeleteCardDialog = ({ card, onOpenChange, open }: Props) => {
       error={error}
       isPending={mutation.isPending}
       onConfirm={() =>
-        mutation.mutate({ boardId: card.board_id, cardId: card.id })
+        mutation.mutate({
+          boardId: card.board_id,
+          cardId: card.id,
+        })
       }
       onOpenChange={onOpenChange}
       open={open}

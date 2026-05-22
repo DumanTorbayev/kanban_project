@@ -6,7 +6,9 @@ import { BoardsList } from "@/widgets/boards-list/ui/boards-list";
 import { DashboardHeader } from "@/widgets/dashboard-header/ui/dashboard-header";
 
 const DashboardPage = async () => {
-  const { user } = await requireUser({ redirectTo: "/dashboard" });
+  const { user } = await requireUser({
+    redirectTo: "/dashboard",
+  });
   const { data: boards, error: boardsError } = await getBoards();
 
   return (

@@ -37,21 +37,30 @@ export const DeleteBoardDialog = ({ board, onOpenChange, open }: Props) => {
     mutationFn: deleteBoard,
     onMutate: async (input) => {
       await Promise.all([
-        queryClient.cancelQueries({ queryKey }),
-        queryClient.cancelQueries({ queryKey: boardsQueryKey }),
+        queryClient.cancelQueries({
+          queryKey,
+        }),
+        queryClient.cancelQueries({
+          queryKey: boardsQueryKey,
+        }),
       ]);
 
       const previousBoard = queryClient.getQueryData<BoardDetails>(queryKey);
       const previousBoards =
         queryClient.getQueryData<BoardListItem[]>(boardsQueryKey);
 
-      queryClient.removeQueries({ queryKey });
+      queryClient.removeQueries({
+        queryKey,
+      });
       queryClient.setQueryData<BoardListItem[]>(boardsQueryKey, (current) =>
         (current ?? []).filter((item) => item.id !== input.boardId),
       );
       setError(null);
 
-      return { previousBoard, previousBoards };
+      return {
+        previousBoard,
+        previousBoards,
+      };
     },
     onError: (mutationError, _input, context) => {
       if (context?.previousBoard) {
@@ -77,7 +86,11 @@ export const DeleteBoardDialog = ({ board, onOpenChange, open }: Props) => {
       description="This board, its columns, and all cards inside it will be permanently removed."
       error={error}
       isPending={mutation.isPending}
-      onConfirm={() => mutation.mutate({ boardId: board.id })}
+      onConfirm={() =>
+        mutation.mutate({
+          boardId: board.id,
+        })
+      }
       onOpenChange={onOpenChange}
       open={open}
       title="Delete board?"

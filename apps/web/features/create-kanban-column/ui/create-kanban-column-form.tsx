@@ -46,7 +46,9 @@ export const CreateKanbanColumnForm = ({ boardId }: Props) => {
   >({
     mutationFn: createKanbanColumn,
     onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({
+        queryKey,
+      });
 
       const previousColumns =
         queryClient.getQueryData<KanbanColumnWithCards[]>(queryKey);
@@ -72,7 +74,10 @@ export const CreateKanbanColumnForm = ({ boardId }: Props) => {
       );
       setError(null);
 
-      return { optimisticColumnId, previousColumns };
+      return {
+        optimisticColumnId,
+        previousColumns,
+      };
     },
     onError: (mutationError, _input, context) => {
       queryClient.setQueryData(queryKey, context?.previousColumns ?? []);
@@ -102,7 +107,10 @@ export const CreateKanbanColumnForm = ({ boardId }: Props) => {
       return;
     }
 
-    mutation.mutate({ boardId, title });
+    mutation.mutate({
+      boardId,
+      title,
+    });
   };
 
   return (

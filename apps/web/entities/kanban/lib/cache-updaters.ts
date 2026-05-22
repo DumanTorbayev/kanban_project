@@ -33,7 +33,10 @@ export function replaceColumnInBoard(
   return sortColumns(
     columns.map((currentColumn) =>
       currentColumn.id === column.id
-        ? { ...column, cards: currentColumn.cards }
+        ? {
+            ...column,
+            cards: currentColumn.cards,
+          }
         : currentColumn,
     ),
   );
@@ -51,11 +54,17 @@ export function replaceColumnIdInBoard(
     }
 
     replaced = true;
-    return { ...column, cards: currentColumn.cards };
+    return {
+      ...column,
+      cards: currentColumn.cards,
+    };
   });
 
   if (!replaced) {
-    return addColumnToBoard(nextColumns, { ...column, cards: [] });
+    return addColumnToBoard(nextColumns, {
+      ...column,
+      cards: [],
+    });
   }
 
   return sortColumns(nextColumns);

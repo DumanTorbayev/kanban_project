@@ -17,22 +17,32 @@ export async function getKanbanBoard(
       .from("board_columns")
       .select("id, board_id, title, position, created_at, updated_at")
       .eq("board_id", boardId)
-      .order("position", { ascending: true }),
+      .order("position", {
+        ascending: true,
+      }),
     supabase
       .from("cards")
       .select(
         "id, board_id, column_id, title, description, position, created_by, assignee_id, created_at, updated_at",
       )
       .eq("board_id", boardId)
-      .order("position", { ascending: true }),
+      .order("position", {
+        ascending: true,
+      }),
   ]);
 
   if (columnsResult.error) {
-    return { data: null, error: columnsResult.error };
+    return {
+      data: null,
+      error: columnsResult.error,
+    };
   }
 
   if (cardsResult.error) {
-    return { data: null, error: cardsResult.error };
+    return {
+      data: null,
+      error: cardsResult.error,
+    };
   }
 
   const columns = (columnsResult.data ?? []) as KanbanColumn[];
@@ -50,5 +60,8 @@ export async function getKanbanBoard(
     cards: cardsByColumn.get(column.id) ?? [],
   }));
 
-  return { data: boardColumns, error: null };
+  return {
+    data: boardColumns,
+    error: null,
+  };
 }

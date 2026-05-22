@@ -28,7 +28,9 @@ export async function createKanbanColumn(input: CreateKanbanColumnInput) {
     .from("board_columns")
     .select("position")
     .eq("board_id", input.boardId)
-    .order("position", { ascending: false })
+    .order("position", {
+      ascending: false,
+    })
     .limit(1)
     .maybeSingle();
 

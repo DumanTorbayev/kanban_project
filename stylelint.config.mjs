@@ -1,5 +1,6 @@
 export default {
   extends: ["stylelint-config-standard"],
+  ignoreFiles: ["**/coverage/**"],
   rules: {
     "at-rule-no-unknown": [
       true,

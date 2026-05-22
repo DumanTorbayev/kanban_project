@@ -41,7 +41,9 @@ export const RenameColumnDialog = ({ column, onOpenChange, open }: Props) => {
   >({
     mutationFn: renameKanbanColumn,
     onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({
+        queryKey,
+      });
 
       const previousColumns =
         queryClient.getQueryData<KanbanColumnWithCards[]>(queryKey);
@@ -56,7 +58,9 @@ export const RenameColumnDialog = ({ column, onOpenChange, open }: Props) => {
       );
       setError(null);
 
-      return { previousColumns };
+      return {
+        previousColumns,
+      };
     },
     onError: (mutationError, _input, context) => {
       if (context?.previousColumns) {

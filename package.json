@@ -11,7 +11,9 @@
     "format:check": "prettier . --check",
     "stylelint": "stylelint \"**/*.css\"",
     "typecheck": "turbo typecheck",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "turbo test",
+    "test:coverage": "turbo test:coverage"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.2",

@@ -38,8 +38,12 @@ export const RenameBoardDialog = ({ board, onOpenChange, open }: Props) => {
     mutationFn: renameBoard,
     onMutate: async (input) => {
       await Promise.all([
-        queryClient.cancelQueries({ queryKey }),
-        queryClient.cancelQueries({ queryKey: boardsQueryKey }),
+        queryClient.cancelQueries({
+          queryKey,
+        }),
+        queryClient.cancelQueries({
+          queryKey: boardsQueryKey,
+        }),
       ]);
 
       const previousBoard = queryClient.getQueryData<BoardDetails>(queryKey);
@@ -53,12 +57,20 @@ export const RenameBoardDialog = ({ board, onOpenChange, open }: Props) => {
       queryClient.setQueryData(queryKey, optimisticBoard);
       queryClient.setQueryData<BoardListItem[]>(boardsQueryKey, (current) =>
         (current ?? []).map((item) =>
-          item.id === board.id ? { ...item, title: input.title } : item,
+          item.id === board.id
+            ? {
+                ...item,
+                title: input.title,
+              }
+            : item,
         ),
       );
       setError(null);
 
-      return { previousBoard, previousBoards };
+      return {
+        previousBoard,
+        previousBoards,
+      };
     },
     onError: (mutationError, _input, context) => {
       if (context?.previousBoard) {
@@ -94,7 +106,10 @@ export const RenameBoardDialog = ({ board, onOpenChange, open }: Props) => {
       return;
     }
 
-    mutation.mutate({ boardId: board.id, title });
+    mutation.mutate({
+      boardId: board.id,
+      title,
+    });
   };
 
   return (

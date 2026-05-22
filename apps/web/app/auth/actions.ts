@@ -31,7 +31,10 @@ function redirectWithMessage(
   message: string,
   params?: Record<string, string>,
 ): never {
-  const searchParams = new URLSearchParams({ [type]: message, ...params });
+  const searchParams = new URLSearchParams({
+    [type]: message,
+    ...params,
+  });
 
   redirect(`${path}?${searchParams.toString()}`);
 }

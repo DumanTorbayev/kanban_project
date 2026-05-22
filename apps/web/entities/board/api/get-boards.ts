@@ -6,5 +6,7 @@ export async function getBoards() {
   return supabase
     .from("boards")
     .select("id, title, created_at")
-    .order("created_at", { ascending: false });
+    .order("created_at", {
+      ascending: false,
+    });
 }
