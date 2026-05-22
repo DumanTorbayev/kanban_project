@@ -42,7 +42,7 @@ export const Modal = ({
           ) : null}
         </div>
         {children}
-        <Dialog.Close className="absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:pointer-events-none">
+        <Dialog.Close className="absolute top-4 right-4 cursor-pointer rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:pointer-events-none">
           <X aria-hidden="true" className="size-4" />
           <span className="sr-only">Close</span>
         </Dialog.Close>
