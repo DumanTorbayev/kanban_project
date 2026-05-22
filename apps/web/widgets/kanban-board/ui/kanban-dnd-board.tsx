@@ -6,35 +6,26 @@ import {
   DragOverlay,
   KeyboardSensor,
   PointerSensor,
-  useDroppable,
   useSensor,
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useMutation } from "@tanstack/react-query";
-import { GripVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { type KanbanCard as KanbanCardModel } from "@/entities/kanban/model/types";
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import { KanbanCard } from "@/entities/kanban/ui/kanban-card";
-import { CreateCardForm } from "@/features/create-card/ui/create-card-form";
 import {
   moveCard,
   type MoveCardInput,
 } from "@/features/move-card/actions/move-card";
-import { cn } from "@workspace/ui/lib/utils";
 
 import { findCardLocation, moveCardInColumns } from "../lib/dnd";
+import { KanbanColumnPanel } from "./kanban-column-panel";
 
 interface Props {
   boardId: string;
@@ -148,110 +139,5 @@ export const KanbanDndBoard = ({ boardId, columns }: Props) => {
         ) : null}
       </DragOverlay>
     </DndContext>
-  );
-};
-
-interface KanbanColumnPanelProps {
-  boardId: string;
-  column: KanbanColumnWithCards;
-  isMutating: boolean;
-}
-
-const KanbanColumnPanel = ({
-  boardId,
-  column,
-  isMutating,
-}: KanbanColumnPanelProps) => {
-  const { isOver, setNodeRef } = useDroppable({
-    id: column.id,
-  });
-
-  return (
-    <section
-      className="flex w-72 shrink-0 flex-col rounded-lg border bg-muted/40 p-3 shadow-sm"
-      ref={setNodeRef}
-    >
-      <header className="mb-3 flex items-center justify-between gap-2">
-        <h2 className="truncate text-sm font-semibold">{column.title}</h2>
-        <span className="rounded-md border bg-background px-2 py-0.5 text-xs text-muted-foreground">
-          {column.cards.length}
-        </span>
-      </header>
-
-      <SortableContext
-        items={column.cards.map((card) => card.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        <div
-          className={cn(
-            "flex flex-1 flex-col gap-2 rounded-md transition-colors",
-            isOver && "bg-primary/5",
-          )}
-        >
-          {column.cards.length > 0 ? (
-            column.cards.map((card) => (
-              <SortableKanbanCard
-                card={card}
-                disabled={isMutating}
-                key={card.id}
-              />
-            ))
-          ) : (
-            <div className="rounded-md border border-dashed bg-background/70 p-4 text-center text-sm text-muted-foreground">
-              No cards
-            </div>
-          )}
-        </div>
-      </SortableContext>
-
-      <div className="mt-3 border-t pt-3">
-        <CreateCardForm boardId={boardId} columnId={column.id} />
-      </div>
-    </section>
-  );
-};
-
-interface SortableKanbanCardProps {
-  card: KanbanCardModel;
-  disabled: boolean;
-}
-
-const SortableKanbanCard = ({ card, disabled }: SortableKanbanCardProps) => {
-  const {
-    attributes,
-    isDragging,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({
-    disabled,
-    id: card.id,
-  });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <div
-      className={isDragging ? "opacity-40" : undefined}
-      ref={setNodeRef}
-      style={style}
-    >
-      <div className="group relative">
-        <button
-          aria-label="Drag card"
-          className="absolute top-2 right-2 z-10 inline-flex size-6 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-30"
-          disabled={disabled}
-          type="button"
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical aria-hidden="true" className="size-4" />
-        </button>
-        <KanbanCard card={card} className="pr-9" />
-      </div>
-    </div>
   );
 };
