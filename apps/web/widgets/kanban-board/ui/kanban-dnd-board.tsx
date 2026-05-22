@@ -36,12 +36,12 @@ import { cn } from "@workspace/ui/lib/utils";
 
 import { findCardLocation, moveCardInColumns } from "../lib/dnd";
 
-type KanbanDndBoardProps = {
+interface Props {
   boardId: string;
   columns: KanbanColumnWithCards[];
-};
+}
 
-export function KanbanDndBoard({ boardId, columns }: KanbanDndBoardProps) {
+export const KanbanDndBoard = ({ boardId, columns }: Props) => {
   const router = useRouter();
   const [localColumns, setLocalColumns] = useState(columns);
   const [activeCard, setActiveCard] = useState<KanbanCardModel | null>(null);
@@ -68,15 +68,15 @@ export function KanbanDndBoard({ boardId, columns }: KanbanDndBoardProps) {
     setLocalColumns(columns);
   }, [columns]);
 
-  function handleDragStart(event: DragStartEvent) {
+  const handleDragStart = (event: DragStartEvent) => {
     const activeId = String(event.active.id);
     const location = findCardLocation(localColumns, activeId);
 
     setMoveError(null);
     setActiveCard(location?.card ?? null);
-  }
+  };
 
-  function handleDragEnd(event: DragEndEvent) {
+  const handleDragEnd = (event: DragEndEvent) => {
     const activeId = String(event.active.id);
     const overId = event.over?.id ? String(event.over.id) : null;
 
@@ -110,7 +110,7 @@ export function KanbanDndBoard({ boardId, columns }: KanbanDndBoardProps) {
         },
       },
     );
-  }
+  };
 
   return (
     <DndContext
@@ -149,19 +149,19 @@ export function KanbanDndBoard({ boardId, columns }: KanbanDndBoardProps) {
       </DragOverlay>
     </DndContext>
   );
-}
+};
 
-type KanbanColumnPanelProps = {
+interface KanbanColumnPanelProps {
   boardId: string;
   column: KanbanColumnWithCards;
   isMutating: boolean;
-};
+}
 
-function KanbanColumnPanel({
+const KanbanColumnPanel = ({
   boardId,
   column,
   isMutating,
-}: KanbanColumnPanelProps) {
+}: KanbanColumnPanelProps) => {
   const { isOver, setNodeRef } = useDroppable({
     id: column.id,
   });
@@ -209,14 +209,14 @@ function KanbanColumnPanel({
       </div>
     </section>
   );
-}
-
-type SortableKanbanCardProps = {
-  card: KanbanCardModel;
-  disabled: boolean;
 };
 
-function SortableKanbanCard({ card, disabled }: SortableKanbanCardProps) {
+interface SortableKanbanCardProps {
+  card: KanbanCardModel;
+  disabled: boolean;
+}
+
+const SortableKanbanCard = ({ card, disabled }: SortableKanbanCardProps) => {
   const {
     attributes,
     isDragging,
@@ -254,4 +254,4 @@ function SortableKanbanCard({ card, disabled }: SortableKanbanCardProps) {
       </div>
     </div>
   );
-}
+};

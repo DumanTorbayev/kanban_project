@@ -2,11 +2,11 @@ import { Button } from "@workspace/ui/components/button";
 
 import { createBoard } from "../actions/create-board";
 
-type CreateBoardFormProps = {
+interface Props {
   error?: string;
-};
+}
 
-export function CreateBoardForm({ error }: CreateBoardFormProps) {
+export const CreateBoardForm = ({ error }: Props) => {
   return (
     <section className="rounded-lg border bg-background p-5 shadow-sm">
       <div className="mb-4">
@@ -37,4 +37,4 @@ export function CreateBoardForm({ error }: CreateBoardFormProps) {
       </form>
     </section>
   );
-}
+};

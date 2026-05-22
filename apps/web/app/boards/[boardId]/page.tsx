@@ -7,19 +7,16 @@ import { AppContainer } from "@/shared/ui/app-container";
 import { BoardHeader } from "@/widgets/board-header/ui/board-header";
 import { KanbanBoard } from "@/widgets/kanban-board/ui/kanban-board";
 
-type BoardPageProps = {
+interface Props {
   params: Promise<{
     boardId: string;
   }>;
   searchParams?: Promise<{
     error?: string;
   }>;
-};
+}
 
-export default async function BoardPage({
-  params,
-  searchParams,
-}: BoardPageProps) {
+const BoardPage = async ({ params, searchParams }: Props) => {
   const { boardId } = await params;
   const queryParams = await searchParams;
   const { supabase } = await requireUser({
@@ -46,4 +43,6 @@ export default async function BoardPage({
       </AppContainer>
     </main>
   );
-}
+};
+
+export default BoardPage;

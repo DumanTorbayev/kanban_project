@@ -1,11 +1,11 @@
 import { signOut } from "@/app/auth/actions";
 import { Button } from "@workspace/ui/components/button";
 
-type DashboardHeaderProps = {
+interface Props {
   email?: string;
-};
+}
 
-export function DashboardHeader({ email }: DashboardHeaderProps) {
+export const DashboardHeader = ({ email }: Props) => {
   return (
     <header className="flex items-center justify-between gap-4 rounded-lg border bg-background p-5 shadow-sm">
       <div>
@@ -22,4 +22,4 @@ export function DashboardHeader({ email }: DashboardHeaderProps) {
       </form>
     </header>
   );
-}
+};

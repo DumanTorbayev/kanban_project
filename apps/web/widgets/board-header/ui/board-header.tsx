@@ -8,11 +8,11 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
   dateStyle: "medium",
 });
 
-type BoardHeaderProps = {
+interface Props {
   board: BoardDetails;
-};
+}
 
-export function BoardHeader({ board }: BoardHeaderProps) {
+export const BoardHeader = ({ board }: Props) => {
   return (
     <header className="flex items-center justify-between gap-4 rounded-lg border bg-background p-5 shadow-sm">
       <div className="min-w-0">
@@ -26,4 +26,4 @@ export function BoardHeader({ board }: BoardHeaderProps) {
       </div>
     </header>
   );
-}
+};

@@ -4,13 +4,11 @@ import { Button } from "@workspace/ui/components/button";
 
 import { createKanbanColumn } from "../actions/create-kanban-column";
 
-type CreateKanbanColumnFormProps = {
+interface Props {
   boardId: string;
-};
+}
 
-export function CreateKanbanColumnForm({
-  boardId,
-}: CreateKanbanColumnFormProps) {
+export const CreateKanbanColumnForm = ({ boardId }: Props) => {
   return (
     <section className="rounded-lg border bg-background p-4 shadow-sm">
       <form
@@ -35,4 +33,4 @@ export function CreateKanbanColumnForm({
       </form>
     </section>
   );
-}
+};

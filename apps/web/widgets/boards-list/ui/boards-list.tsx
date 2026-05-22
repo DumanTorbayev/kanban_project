@@ -1,12 +1,12 @@
-import { BoardCard } from "@/entities/board/ui/board-card";
 import { type BoardListItem } from "@/entities/board/model/types";
+import { BoardCard } from "@/entities/board/ui/board-card";
 
-type BoardsListProps = {
+interface Props {
   boards: BoardListItem[];
   error?: string;
-};
+}
 
-export function BoardsList({ boards, error }: BoardsListProps) {
+export const BoardsList = ({ boards, error }: Props) => {
   const hasBoards = boards.length > 0;
 
   return (
@@ -47,4 +47,4 @@ export function BoardsList({ boards, error }: BoardsListProps) {
       ) : null}
     </section>
   );
-}
+};

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@workspace/ui/components/button";
 
-export default function Page() {
+const Page = () => {
   return (
     <main className="flex min-h-svh items-center justify-center bg-muted/30 p-6">
       <section className="w-full max-w-lg rounded-lg border bg-background p-6 shadow-sm">
@@ -28,4 +28,6 @@ export default function Page() {
       </section>
     </main>
   );
-}
+};
+
+export default Page;
