@@ -5,14 +5,7 @@ import { AppContainer } from "@/shared/ui/app-container";
 import { BoardsList } from "@/widgets/boards-list/ui/boards-list";
 import { DashboardHeader } from "@/widgets/dashboard-header/ui/dashboard-header";
 
-interface Props {
-  searchParams?: Promise<{
-    error?: string;
-  }>;
-}
-
-const DashboardPage = async ({ searchParams }: Props) => {
-  const params = await searchParams;
+const DashboardPage = async () => {
   const { user } = await requireUser({ redirectTo: "/dashboard" });
   const { data: boards, error: boardsError } = await getBoards();
 
@@ -20,7 +13,7 @@ const DashboardPage = async ({ searchParams }: Props) => {
     <main className="min-h-svh bg-muted/30 p-6">
       <AppContainer>
         <DashboardHeader email={user.email} />
-        <CreateBoardForm error={params?.error} />
+        <CreateBoardForm />
         <BoardsList boards={boards ?? []} error={boardsError?.message} />
       </AppContainer>
     </main>
