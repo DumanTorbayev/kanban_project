@@ -1,18 +1,13 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
 import { Plus } from "lucide-react";
 
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import { ColumnActionsMenu } from "@/features/manage-kanban-column/ui/column-actions-menu";
 import { Button } from "@workspace/ui/components/button";
-import { cn } from "@workspace/ui/lib/utils";
 
-import { SortableKanbanCard } from "./sortable-kanban-card";
+import { VirtualizedKanbanCardList } from "./virtualized-kanban-card-list";
 
 interface Props {
   column: KanbanColumnWithCards;
@@ -31,7 +26,7 @@ export const KanbanColumnPanel = ({
 
   return (
     <section
-      className="flex min-w-72 flex-1 flex-col rounded-lg border bg-muted/40 p-3 shadow-sm"
+      className="flex h-[calc(100vh-18rem)] max-h-[44rem] min-h-112 min-w-72 flex-1 flex-col rounded-lg border bg-muted/40 p-3 shadow-sm"
       ref={setNodeRef}
     >
       <header className="mb-2 flex items-center justify-between gap-2">
@@ -56,31 +51,11 @@ export const KanbanColumnPanel = ({
         Add card
       </Button>
 
-      <SortableContext
-        items={column.cards.map((card) => card.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        <div
-          className={cn(
-            "flex flex-1 flex-col gap-2 rounded-md transition-colors",
-            isOver && "bg-primary/5",
-          )}
-        >
-          {column.cards.length > 0 ? (
-            column.cards.map((card) => (
-              <SortableKanbanCard
-                card={card}
-                disabled={isMutating}
-                key={card.id}
-              />
-            ))
-          ) : (
-            <div className="rounded-md border border-dashed bg-background/70 p-4 text-center text-sm text-muted-foreground">
-              No cards
-            </div>
-          )}
-        </div>
-      </SortableContext>
+      <VirtualizedKanbanCardList
+        cards={column.cards}
+        disabled={isMutating}
+        isOver={isOver}
+      />
     </section>
   );
 };
