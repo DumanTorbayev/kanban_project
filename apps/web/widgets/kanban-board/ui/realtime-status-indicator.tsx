@@ -1,6 +1,11 @@
 "use client";
 
-import { LoaderCircle, TriangleAlert, Wifi, WifiOff } from "lucide-react";
+import {
+  LoaderCircle,
+  TriangleAlert,
+  WifiOff,
+  type LucideIcon,
+} from "lucide-react";
 
 import { type KanbanRealtimeStatus } from "../model/use-kanban-board-realtime";
 import { cn } from "@workspace/ui/lib/utils";
@@ -9,46 +14,45 @@ interface Props {
   status: KanbanRealtimeStatus;
 }
 
-const statusContent = {
+type StatusContent = {
+  className: string;
+  icon?: LucideIcon;
+  indicatorClassName?: string;
+  isLoading?: boolean;
+  label: string;
+};
+
+const statusContent: Record<KanbanRealtimeStatus, StatusContent> = {
   connecting: {
-    className: "border-border bg-muted text-muted-foreground",
-    icon: LoaderCircle,
-    iconClassName: "animate-spin",
+    className: "px-1 text-muted-foreground",
+    indicatorClassName: "bg-muted-foreground/70",
+    isLoading: true,
     label: "Connecting",
   },
   connected: {
-    className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700",
-    icon: Wifi,
-    iconClassName: "",
-    label: "Live",
+    className: "px-1 text-muted-foreground",
+    indicatorClassName: "bg-emerald-500",
+    label: "Synced",
   },
   disconnected: {
-    className: "border-muted-foreground/30 bg-muted text-muted-foreground",
+    className:
+      "rounded-md border border-border bg-muted px-2 text-muted-foreground",
     icon: WifiOff,
-    iconClassName: "",
     label: "Offline",
   },
   error: {
-    className: "border-destructive/30 bg-destructive/10 text-destructive",
+    className:
+      "rounded-md border border-destructive/30 bg-destructive/10 px-2 text-destructive",
     icon: TriangleAlert,
-    iconClassName: "",
     label: "Realtime error",
   },
   reconnecting: {
-    className: "border-amber-500/30 bg-amber-500/10 text-amber-700",
-    icon: LoaderCircle,
-    iconClassName: "animate-spin",
+    className: "px-1 text-amber-700",
+    indicatorClassName: "bg-amber-500",
+    isLoading: true,
     label: "Reconnecting",
   },
-} satisfies Record<
-  KanbanRealtimeStatus,
-  {
-    className: string;
-    icon: typeof Wifi;
-    iconClassName: string;
-    label: string;
-  }
->;
+};
 
 export const RealtimeStatusIndicator = ({ status }: Props) => {
   const content = statusContent[status];
@@ -56,15 +60,28 @@ export const RealtimeStatusIndicator = ({ status }: Props) => {
 
   return (
     <div
+      aria-live="polite"
       className={cn(
-        "inline-flex h-9 shrink-0 items-center gap-2 rounded-md border px-3 text-sm font-medium",
+        "inline-flex h-8 shrink-0 items-center gap-1.5 text-xs font-medium",
         content.className,
       )}
+      role="status"
     >
-      <Icon
-        aria-hidden="true"
-        className={cn("size-4", content.iconClassName)}
-      />
+      {content.isLoading ? (
+        <LoaderCircle aria-hidden="true" className="size-3.5 animate-spin" />
+      ) : null}
+
+      {!content.isLoading && Icon ? (
+        <Icon aria-hidden="true" className="size-3.5" />
+      ) : null}
+
+      {!content.isLoading && !Icon ? (
+        <span
+          aria-hidden="true"
+          className={cn("size-2 rounded-full", content.indicatorClassName)}
+        />
+      ) : null}
+
       <span>{content.label}</span>
     </div>
   );
