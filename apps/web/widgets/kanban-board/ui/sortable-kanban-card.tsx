@@ -50,11 +50,7 @@ export const SortableKanbanCard = ({ card, disabled }: Props) => {
         >
           <KanbanCard card={card} className="pr-12" />
         </div>
-        <div
-          className={cardActionsClassName}
-          onKeyDownCapture={(event) => event.stopPropagation()}
-          onPointerDownCapture={(event) => event.stopPropagation()}
-        >
+        <div className={cardActionsClassName}>
           <CardActionsMenu card={card} disabled={disabled} />
         </div>
       </div>
