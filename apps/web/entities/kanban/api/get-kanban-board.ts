@@ -1,10 +1,11 @@
 import { type createClient } from "@/lib/supabase/server";
 
 import {
-  type KanbanCard,
-  type KanbanColumn,
-  type KanbanColumnWithCards,
-} from "../model/types";
+  normalizeKanbanBoard,
+  type KanbanCardRow,
+  type KanbanColumnRow,
+} from "../lib/normalize-kanban";
+import { type KanbanColumnWithCards } from "../model/types";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -45,20 +46,10 @@ export async function getKanbanBoard(
     };
   }
 
-  const columns = (columnsResult.data ?? []) as KanbanColumn[];
-  const cards = (cardsResult.data ?? []) as KanbanCard[];
-  const cardsByColumn = new Map<string, KanbanCard[]>();
-
-  for (const card of cards) {
-    const columnCards = cardsByColumn.get(card.column_id) ?? [];
-    columnCards.push(card);
-    cardsByColumn.set(card.column_id, columnCards);
-  }
-
-  const boardColumns: KanbanColumnWithCards[] = columns.map((column) => ({
-    ...column,
-    cards: cardsByColumn.get(column.id) ?? [],
-  }));
+  const boardColumns: KanbanColumnWithCards[] = normalizeKanbanBoard(
+    (columnsResult.data ?? []) as KanbanColumnRow[],
+    (cardsResult.data ?? []) as KanbanCardRow[],
+  );
 
   return {
     data: boardColumns,

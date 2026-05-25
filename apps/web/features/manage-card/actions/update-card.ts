@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 
-import { type KanbanCard } from "@/entities/kanban/model/types";
+import {
+  normalizeKanbanCard,
+  type KanbanCardRow,
+} from "@/entities/kanban/lib/normalize-kanban";
 import { requireUser } from "@/shared/lib/auth/require-user";
 
 export type UpdateCardInput = {
@@ -45,5 +48,5 @@ export async function updateCard(input: UpdateCardInput) {
 
   revalidatePath("/boards/" + input.boardId);
 
-  return data as KanbanCard;
+  return normalizeKanbanCard(data as KanbanCardRow);
 }

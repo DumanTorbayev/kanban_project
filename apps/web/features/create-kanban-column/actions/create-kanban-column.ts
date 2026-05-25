@@ -2,8 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
+import {
+  normalizeKanbanColumn,
+  type KanbanColumnRow,
+} from "@/entities/kanban/lib/normalize-kanban";
 import { getNextPosition } from "@/entities/kanban/lib/position";
-import { type KanbanColumn } from "@/entities/kanban/model/types";
 import { requireUser } from "@/shared/lib/auth/require-user";
 
 export type CreateKanbanColumnInput = {
@@ -54,5 +57,5 @@ export async function createKanbanColumn(input: CreateKanbanColumnInput) {
 
   revalidatePath("/boards/" + input.boardId);
 
-  return data as KanbanColumn;
+  return normalizeKanbanColumn(data as KanbanColumnRow);
 }
