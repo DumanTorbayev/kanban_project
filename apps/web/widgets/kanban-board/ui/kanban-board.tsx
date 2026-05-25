@@ -7,6 +7,8 @@ import { kanbanBoardQueryKey } from "@/entities/kanban/model/query-keys";
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import { CreateKanbanColumnForm } from "@/features/create-kanban-column/ui/create-kanban-column-form";
 
+import { useKanbanBoardRealtime } from "../model/use-kanban-board-realtime";
+
 import { KanbanDndBoard } from "./kanban-dnd-board";
 
 interface Props {
@@ -28,6 +30,9 @@ export const KanbanBoard = ({
     queryFn: () => Promise.resolve(initialColumns),
     queryKey,
   });
+  const { error: realtimeError } = useKanbanBoardRealtime({
+    boardId,
+  });
   const hasColumns = columns.length > 0;
 
   useEffect(() => {
@@ -37,6 +42,12 @@ export const KanbanBoard = ({
   return (
     <section className="space-y-4">
       <CreateKanbanColumnForm boardId={boardId} />
+
+      {realtimeError ? (
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {realtimeError}
+        </p>
+      ) : null}
 
       {error ? (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

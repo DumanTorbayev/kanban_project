@@ -29,17 +29,24 @@ export async function moveCard(input: MoveCardInput) {
   const { supabase } = await requireUser({
     redirectTo: "/boards/" + input.boardId,
   });
-  const { error } = await supabase
+  const { data: movedCard, error } = await supabase
     .from("cards")
     .update({
       column_id: input.columnId,
       position: input.position,
+      updated_at: new Date().toISOString(),
     })
     .eq("id", input.cardId)
-    .eq("board_id", input.boardId);
+    .eq("board_id", input.boardId)
+    .select("id")
+    .maybeSingle();
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (!movedCard) {
+    throw new Error("Card was not moved.");
   }
 
   revalidatePath("/boards/" + input.boardId);

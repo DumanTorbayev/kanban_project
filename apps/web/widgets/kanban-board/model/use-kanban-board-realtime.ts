@@ -1,16 +1,9 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import {
-  addCardToBoard,
-  addColumnToBoard,
-  removeCardFromBoard,
-  removeColumnFromBoard,
-  replaceCardInBoard,
-  replaceColumnInBoard,
-} from "@/entities/kanban/lib/cache-updaters";
+import { getKanbanBoard } from "@/entities/kanban/api/get-kanban-board";
 import { kanbanBoardQueryKey } from "@/entities/kanban/model/query-keys";
 import {
   type KanbanCard,
@@ -19,65 +12,45 @@ import {
 } from "@/entities/kanban/model/types";
 import { createClient } from "@/lib/supabase/client";
 
-type RealtimePayload<T> = {
-  eventType: "INSERT" | "UPDATE" | "DELETE";
-  new: Partial<T>;
-  old: Partial<T>;
-};
+type RealtimeStatus =
+  | "idle"
+  | "subscribed"
+  | "timed_out"
+  | "channel_error"
+  | "closed";
 
 interface Props {
   boardId: string;
 }
 
-const toColumnWithCards = (column: KanbanColumn): KanbanColumnWithCards => ({
-  ...column,
-  cards: [],
-});
-
-const applyColumnChange = (
-  columns: KanbanColumnWithCards[] | undefined,
-  payload: RealtimePayload<KanbanColumn>,
-) => {
-  const currentColumns = columns ?? [];
-
-  if (payload.eventType === "DELETE") {
-    return payload.old.id
-      ? removeColumnFromBoard(currentColumns, payload.old.id)
-      : currentColumns;
-  }
-
-  const column = payload.new as KanbanColumn;
-
-  return payload.eventType === "INSERT"
-    ? addColumnToBoard(currentColumns, toColumnWithCards(column))
-    : replaceColumnInBoard(currentColumns, column);
-};
-
-const applyCardChange = (
-  columns: KanbanColumnWithCards[] | undefined,
-  payload: RealtimePayload<KanbanCard>,
-) => {
-  const currentColumns = columns ?? [];
-
-  if (payload.eventType === "DELETE") {
-    return payload.old.id
-      ? removeCardFromBoard(currentColumns, payload.old.id)
-      : currentColumns;
-  }
-
-  const card = payload.new as KanbanCard;
-
-  return payload.eventType === "INSERT"
-    ? addCardToBoard(currentColumns, card)
-    : replaceCardInBoard(currentColumns, card);
-};
-
 export const useKanbanBoardRealtime = ({ boardId }: Props) => {
   const queryClient = useQueryClient();
   const queryKey = useMemo(() => kanbanBoardQueryKey(boardId), [boardId]);
+  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<RealtimeStatus>("idle");
 
   useEffect(() => {
+    let isActive = true;
     const supabase = createClient();
+    const syncBoard = async () => {
+      const result = await getKanbanBoard(supabase, boardId);
+
+      if (!isActive) {
+        return;
+      }
+
+      if (result.error) {
+        setError(result.error.message);
+        return;
+      }
+
+      queryClient.setQueryData<KanbanColumnWithCards[]>(
+        queryKey,
+        result.data ?? [],
+      );
+      setError(null);
+    };
+
     const channel = supabase
       .channel("kanban-board:" + boardId)
       .on<KanbanColumn>(
@@ -88,11 +61,8 @@ export const useKanbanBoardRealtime = ({ boardId }: Props) => {
           schema: "public",
           table: "board_columns",
         },
-        (payload) => {
-          queryClient.setQueryData<KanbanColumnWithCards[]>(
-            queryKey,
-            (current) => applyColumnChange(current, payload),
-          );
+        () => {
+          void syncBoard();
         },
       )
       .on<KanbanCard>(
@@ -103,17 +73,47 @@ export const useKanbanBoardRealtime = ({ boardId }: Props) => {
           schema: "public",
           table: "cards",
         },
-        (payload) => {
-          queryClient.setQueryData<KanbanColumnWithCards[]>(
-            queryKey,
-            (current) => applyCardChange(current, payload),
-          );
+        () => {
+          void syncBoard();
         },
       )
-      .subscribe();
+      .subscribe((nextStatus, subscribeError) => {
+        if (nextStatus === "SUBSCRIBED") {
+          setStatus("subscribed");
+          setError(null);
+          return;
+        }
+
+        if (nextStatus === "TIMED_OUT") {
+          setStatus("timed_out");
+          setError(
+            "Realtime connection timed out. Check Supabase Realtime settings.",
+          );
+          return;
+        }
+
+        if (nextStatus === "CHANNEL_ERROR") {
+          setStatus("channel_error");
+          setError(
+            subscribeError?.message ??
+              "Realtime channel error. Check publication and RLS access.",
+          );
+          return;
+        }
+
+        if (nextStatus === "CLOSED") {
+          setStatus("closed");
+        }
+      });
 
     return () => {
+      isActive = false;
       void supabase.removeChannel(channel);
     };
   }, [boardId, queryClient, queryKey]);
+
+  return {
+    error,
+    status,
+  };
 };
