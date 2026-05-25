@@ -10,6 +10,7 @@ import { CreateKanbanColumnForm } from "@/features/create-kanban-column/ui/creat
 import { useKanbanBoardRealtime } from "../model/use-kanban-board-realtime";
 
 import { KanbanDndBoard } from "./kanban-dnd-board";
+import { RealtimeStatusIndicator } from "./realtime-status-indicator";
 
 interface Props {
   boardId: string;
@@ -30,9 +31,10 @@ export const KanbanBoard = ({
     queryFn: () => Promise.resolve(initialColumns),
     queryKey,
   });
-  const { error: realtimeError } = useKanbanBoardRealtime({
-    boardId,
-  });
+  const { error: realtimeError, status: realtimeStatus } =
+    useKanbanBoardRealtime({
+      boardId,
+    });
   const hasColumns = columns.length > 0;
 
   useEffect(() => {
@@ -41,7 +43,12 @@ export const KanbanBoard = ({
 
   return (
     <section className="space-y-4">
-      <CreateKanbanColumnForm boardId={boardId} />
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
+        <div className="min-w-0 flex-1">
+          <CreateKanbanColumnForm boardId={boardId} />
+        </div>
+        <RealtimeStatusIndicator status={realtimeStatus} />
+      </div>
 
       {realtimeError ? (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

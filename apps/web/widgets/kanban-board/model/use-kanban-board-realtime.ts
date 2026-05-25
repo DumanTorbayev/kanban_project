@@ -12,12 +12,12 @@ import {
 } from "@/entities/kanban/model/types";
 import { createClient } from "@/lib/supabase/client";
 
-type RealtimeStatus =
-  | "idle"
-  | "subscribed"
-  | "timed_out"
-  | "channel_error"
-  | "closed";
+export type KanbanRealtimeStatus =
+  | "connecting"
+  | "connected"
+  | "reconnecting"
+  | "disconnected"
+  | "error";
 
 interface Props {
   boardId: string;
@@ -27,7 +27,7 @@ export const useKanbanBoardRealtime = ({ boardId }: Props) => {
   const queryClient = useQueryClient();
   const queryKey = useMemo(() => kanbanBoardQueryKey(boardId), [boardId]);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<RealtimeStatus>("idle");
+  const [status, setStatus] = useState<KanbanRealtimeStatus>("connecting");
 
   useEffect(() => {
     let isActive = true;
@@ -50,6 +50,31 @@ export const useKanbanBoardRealtime = ({ boardId }: Props) => {
       );
       setError(null);
     };
+    const syncBoardSnapshot = () => {
+      void syncBoard();
+    };
+    const handleOnline = () => {
+      setStatus("reconnecting");
+      syncBoardSnapshot();
+    };
+    const handleOffline = () => {
+      setStatus("disconnected");
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        syncBoardSnapshot();
+      }
+    };
+
+    queueMicrotask(() => {
+      if (isActive && !navigator.onLine) {
+        setStatus("disconnected");
+      }
+    });
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     const channel = supabase
       .channel("kanban-board:" + boardId)
@@ -61,9 +86,7 @@ export const useKanbanBoardRealtime = ({ boardId }: Props) => {
           schema: "public",
           table: "board_columns",
         },
-        () => {
-          void syncBoard();
-        },
+        syncBoardSnapshot,
       )
       .on<KanbanCard>(
         "postgres_changes",
@@ -73,27 +96,30 @@ export const useKanbanBoardRealtime = ({ boardId }: Props) => {
           schema: "public",
           table: "cards",
         },
-        () => {
-          void syncBoard();
-        },
+        syncBoardSnapshot,
       )
       .subscribe((nextStatus, subscribeError) => {
+        if (!isActive) {
+          return;
+        }
+
         if (nextStatus === "SUBSCRIBED") {
-          setStatus("subscribed");
+          setStatus("connected");
           setError(null);
+          syncBoardSnapshot();
           return;
         }
 
         if (nextStatus === "TIMED_OUT") {
-          setStatus("timed_out");
+          setStatus("reconnecting");
           setError(
-            "Realtime connection timed out. Check Supabase Realtime settings.",
+            "Realtime connection timed out. Trying to reconnect with Supabase.",
           );
           return;
         }
 
         if (nextStatus === "CHANNEL_ERROR") {
-          setStatus("channel_error");
+          setStatus("error");
           setError(
             subscribeError?.message ??
               "Realtime channel error. Check publication and RLS access.",
@@ -102,12 +128,15 @@ export const useKanbanBoardRealtime = ({ boardId }: Props) => {
         }
 
         if (nextStatus === "CLOSED") {
-          setStatus("closed");
+          setStatus("disconnected");
         }
       });
 
     return () => {
       isActive = false;
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       void supabase.removeChannel(channel);
     };
   }, [boardId, queryClient, queryKey]);
