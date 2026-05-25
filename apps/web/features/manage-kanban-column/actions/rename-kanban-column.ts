@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 
-import { type KanbanColumn } from "@/entities/kanban/model/types";
+import {
+  normalizeKanbanColumn,
+  type KanbanColumnRow,
+} from "@/entities/kanban/lib/normalize-kanban";
 import { requireUser } from "@/shared/lib/auth/require-user";
 
 export type RenameKanbanColumnInput = {
@@ -41,5 +44,5 @@ export async function renameKanbanColumn(input: RenameKanbanColumnInput) {
 
   revalidatePath("/boards/" + input.boardId);
 
-  return data as KanbanColumn;
+  return normalizeKanbanColumn(data as KanbanColumnRow);
 }
