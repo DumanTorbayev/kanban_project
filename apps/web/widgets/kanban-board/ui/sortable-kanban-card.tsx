@@ -2,17 +2,14 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
 
 import { type KanbanCard as KanbanCardModel } from "@/entities/kanban/model/types";
 import { KanbanCard } from "@/entities/kanban/ui/kanban-card";
 import { CardActionsMenu } from "@/features/manage-card/ui/card-actions-menu";
-
-const dragHandleClassName =
-  "absolute top-2 right-9 z-10 inline-flex size-6 cursor-pointer items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-30";
+import { cn } from "@workspace/ui/lib/utils";
 
 const cardActionsClassName =
-  "absolute top-2 right-2 z-20 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100";
+  "absolute top-2 right-2 z-20 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 has-data-[state=open]:opacity-100";
 
 interface Props {
   card: KanbanCardModel;
@@ -43,22 +40,23 @@ export const SortableKanbanCard = ({ card, disabled }: Props) => {
       style={style}
     >
       <div className="group relative">
-        <button
-          aria-label="Drag card"
-          className={dragHandleClassName}
-          disabled={disabled}
-          type="button"
+        <div
+          className={cn(
+            "cursor-grab rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:cursor-grabbing",
+            disabled && "cursor-default active:cursor-default",
+          )}
           {...attributes}
           {...listeners}
         >
-          <GripVertical aria-hidden="true" className="size-4" />
-        </button>
-        <CardActionsMenu
-          card={card}
+          <KanbanCard card={card} className="pr-12" />
+        </div>
+        <div
           className={cardActionsClassName}
-          disabled={disabled}
-        />
-        <KanbanCard card={card} className="pr-16" />
+          onKeyDownCapture={(event) => event.stopPropagation()}
+          onPointerDownCapture={(event) => event.stopPropagation()}
+        >
+          <CardActionsMenu card={card} disabled={disabled} />
+        </div>
       </div>
     </div>
   );
