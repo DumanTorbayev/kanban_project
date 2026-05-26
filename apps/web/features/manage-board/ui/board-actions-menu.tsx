@@ -1,13 +1,18 @@
 "use client";
 
 import { Pencil, Trash2 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { type BoardDetails } from "@/entities/board/model/types";
 import { ActionMenu } from "@workspace/ui/components/action-menu";
 
-import { DeleteBoardDialog } from "./delete-board-dialog";
-import { RenameBoardDialog } from "./rename-board-dialog";
+const RenameBoardDialog = dynamic(() =>
+  import("./rename-board-dialog").then((module) => module.RenameBoardDialog),
+);
+const DeleteBoardDialog = dynamic(() =>
+  import("./delete-board-dialog").then((module) => module.DeleteBoardDialog),
+);
 
 interface Props {
   board: BoardDetails;
@@ -36,16 +41,20 @@ export const BoardActionsMenu = ({ board }: Props) => {
         ]}
         label="Board actions"
       />
-      <RenameBoardDialog
-        board={board}
-        onOpenChange={setRenameOpen}
-        open={renameOpen}
-      />
-      <DeleteBoardDialog
-        board={board}
-        onOpenChange={setDeleteOpen}
-        open={deleteOpen}
-      />
+      {renameOpen ? (
+        <RenameBoardDialog
+          board={board}
+          onOpenChange={setRenameOpen}
+          open={renameOpen}
+        />
+      ) : null}
+      {deleteOpen ? (
+        <DeleteBoardDialog
+          board={board}
+          onOpenChange={setDeleteOpen}
+          open={deleteOpen}
+        />
+      ) : null}
     </>
   );
 };
