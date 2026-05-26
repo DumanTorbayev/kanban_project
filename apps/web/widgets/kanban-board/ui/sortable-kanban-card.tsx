@@ -6,6 +6,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { type KanbanCard as KanbanCardModel } from "@/entities/kanban/model/types";
 import { KanbanCard } from "@/entities/kanban/ui/kanban-card";
 import { CardActionsMenu } from "@/features/manage-card/ui/card-actions-menu";
+import { type CardTimerControls } from "@/features/track-card-time/model/use-card-timer";
+import { CardTimerControl } from "@/features/track-card-time/ui/card-timer-control";
 import { cn } from "@workspace/ui/lib/utils";
 
 const cardActionsClassName =
@@ -14,9 +16,10 @@ const cardActionsClassName =
 interface Props {
   card: KanbanCardModel;
   disabled: boolean;
+  timer: CardTimerControls;
 }
 
-export const SortableKanbanCard = ({ card, disabled }: Props) => {
+export const SortableKanbanCard = ({ card, disabled, timer }: Props) => {
   const {
     attributes,
     isDragging,
@@ -48,7 +51,17 @@ export const SortableKanbanCard = ({ card, disabled }: Props) => {
           {...attributes}
           {...listeners}
         >
-          <KanbanCard card={card} className="pr-12" />
+          <KanbanCard
+            card={card}
+            className="pr-12"
+            footer={
+              <CardTimerControl
+                cardId={card.id}
+                disabled={disabled}
+                timer={timer}
+              />
+            }
+          />
         </div>
         <div className={cardActionsClassName}>
           <CardActionsMenu card={card} disabled={disabled} />

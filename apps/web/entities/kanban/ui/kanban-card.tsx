@@ -1,4 +1,5 @@
 import { Clock3 } from "lucide-react";
+import { type ReactNode } from "react";
 
 import { cn } from "@workspace/ui/lib/utils";
 
@@ -12,9 +13,10 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
 interface Props {
   card: KanbanCardModel;
   className?: string;
+  footer?: ReactNode;
 }
 
-export const KanbanCard = ({ card, className }: Props) => (
+export const KanbanCard = ({ card, className, footer }: Props) => (
   <article
     className={cn("rounded-md border bg-background p-3 shadow-xs", className)}
   >
@@ -28,5 +30,6 @@ export const KanbanCard = ({ card, className }: Props) => (
       <Clock3 aria-hidden="true" className="size-3.5" />
       <span>{dateFormatter.format(new Date(card.created_at))}</span>
     </div>
+    {footer ? <div className="mt-3">{footer}</div> : null}
   </article>
 );

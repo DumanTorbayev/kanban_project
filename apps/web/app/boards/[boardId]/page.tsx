@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { getBoard } from "@/entities/board/api/get-board";
 import { getKanbanBoard } from "@/entities/kanban/api/get-kanban-board";
+import { getActiveTimeEntry } from "@/entities/time-entry/api/get-active-time-entry";
 import { requireUser } from "@/shared/lib/auth/require-user";
 import { AppContainer } from "@/shared/ui/app-container";
 import { BoardHeader } from "@/widgets/board-header/ui/board-header";
@@ -19,12 +20,13 @@ interface Props {
 const BoardPage = async ({ params, searchParams }: Props) => {
   const { boardId } = await params;
   const queryParams = await searchParams;
-  const { supabase } = await requireUser({
+  const { supabase, user } = await requireUser({
     redirectTo: "/boards/" + boardId,
   });
-  const [boardResult, kanbanResult] = await Promise.all([
+  const [boardResult, kanbanResult, activeTimeEntryResult] = await Promise.all([
     getBoard(supabase, boardId),
     getKanbanBoard(supabase, boardId),
+    getActiveTimeEntry(supabase, boardId, user.id),
   ]);
 
   if (boardResult.error || !boardResult.data) {
@@ -36,9 +38,11 @@ const BoardPage = async ({ params, searchParams }: Props) => {
       <AppContainer>
         <BoardHeader board={boardResult.data} />
         <KanbanBoard
+          activeTimeEntry={activeTimeEntryResult.data}
           boardId={boardResult.data.id}
           columns={kanbanResult.data ?? []}
           error={queryParams?.error ?? kanbanResult.error?.message}
+          timerError={activeTimeEntryResult.error?.message}
         />
       </AppContainer>
     </main>
