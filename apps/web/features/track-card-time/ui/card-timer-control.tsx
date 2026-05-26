@@ -13,12 +13,18 @@ interface Props {
   cardId: string;
   disabled: boolean;
   timer: CardTimerControls;
+  trackedSeconds: number;
 }
 
-export const CardTimerControl = ({ cardId, disabled, timer }: Props) => {
+export const CardTimerControl = ({
+  cardId,
+  disabled,
+  timer,
+  trackedSeconds,
+}: Props) => {
   const activeTimeEntry = timer.activeTimeEntry;
   const isRunning = activeTimeEntry?.card_id === cardId;
-  const isBlocked = Boolean(activeTimeEntry && !isRunning);
+  const isSwitching = Boolean(activeTimeEntry && !isRunning);
   const { elapsedSeconds } = useTimer({
     running: isRunning,
     startedAt: activeTimeEntry?.started_at,
@@ -31,21 +37,28 @@ export const CardTimerControl = ({ cardId, disabled, timer }: Props) => {
 
     timer.startTimer(cardId);
   };
-  const label = isRunning ? "Stop timer" : "Start timer";
+  const label = isRunning
+    ? "Stop timer"
+    : isSwitching
+      ? "Switch timer"
+      : "Start timer";
+  const visibleSeconds = isRunning ? elapsedSeconds : trackedSeconds;
 
   return (
     <Button
       aria-label={label}
       className={cn(
-        "h-7 w-full justify-between rounded-md text-xs",
+        "h-7 w-full cursor-pointer justify-between rounded-md text-xs",
         isRunning && "border-emerald-500/30 bg-emerald-500/10 text-emerald-700",
       )}
-      disabled={disabled || timer.isMutating || isBlocked}
+      disabled={disabled || timer.isMutating}
       onClick={handleClick}
-      onPointerDown={(event) => event.stopPropagation()}
       onKeyDown={(event) => event.stopPropagation()}
+      onPointerDown={(event) => event.stopPropagation()}
       size="sm"
-      title={isBlocked ? "Another timer is running." : label}
+      title={
+        isSwitching ? "Stop the current timer and start this card." : label
+      }
       type="button"
       variant={isRunning ? "outline" : "secondary"}
     >
@@ -57,9 +70,9 @@ export const CardTimerControl = ({ cardId, disabled, timer }: Props) => {
         )}
         <span className="truncate">{label}</span>
       </span>
-      {isRunning ? (
+      {visibleSeconds > 0 ? (
         <span className="font-mono text-[0.7rem]">
-          {formatTimerDuration(elapsedSeconds)}
+          {formatTimerDuration(visibleSeconds)}
         </span>
       ) : null}
     </Button>

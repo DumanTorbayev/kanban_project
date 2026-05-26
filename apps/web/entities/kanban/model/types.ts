@@ -5,6 +5,7 @@ export type KanbanCard = {
   title: string;
   description: string | null;
   position: number;
+  tracked_seconds: number;
   created_by: string;
   assignee_id: string | null;
   created_at: string;

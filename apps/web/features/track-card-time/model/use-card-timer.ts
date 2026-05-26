@@ -3,6 +3,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
+import { addTrackedSecondsToCard } from "@/entities/kanban/lib/cache-updaters";
+import { kanbanBoardQueryKey } from "@/entities/kanban/model/query-keys";
+import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import { activeTimeEntryQueryKey } from "@/entities/time-entry/model/query-keys";
 import {
   type ActiveTimeEntry,
@@ -13,6 +16,7 @@ import { getErrorMessage } from "@/shared/lib/errors/get-error-message";
 import {
   startCardTimer,
   type StartCardTimerInput,
+  type StartCardTimerResult,
 } from "../actions/start-card-timer";
 import {
   stopCardTimer,
@@ -37,16 +41,38 @@ export const useCardTimer = ({
   initialActiveTimeEntry,
 }: Props): CardTimerControls => {
   const queryClient = useQueryClient();
-  const queryKey = useMemo(() => activeTimeEntryQueryKey(boardId), [boardId]);
+  const activeTimeEntryQuery = useMemo(
+    () => activeTimeEntryQueryKey(boardId),
+    [boardId],
+  );
+  const kanbanBoardQuery = useMemo(
+    () => kanbanBoardQueryKey(boardId),
+    [boardId],
+  );
   const [error, setError] = useState<string | null>(null);
   const { data: activeTimeEntry = null } = useQuery({
     enabled: false,
     initialData: initialActiveTimeEntry,
     queryFn: () => Promise.resolve(initialActiveTimeEntry),
-    queryKey,
+    queryKey: activeTimeEntryQuery,
   });
+  const addTrackedTimeToCard = (timeEntry: TimeEntry | null) => {
+    if (!timeEntry) {
+      return;
+    }
+
+    queryClient.setQueryData<KanbanColumnWithCards[]>(
+      kanbanBoardQuery,
+      (currentColumns) =>
+        addTrackedSecondsToCard(
+          currentColumns ?? [],
+          timeEntry.card_id,
+          timeEntry.duration_seconds,
+        ),
+    );
+  };
   const startMutation = useMutation<
-    ActiveTimeEntry,
+    StartCardTimerResult,
     Error,
     StartCardTimerInput
   >({
@@ -54,8 +80,9 @@ export const useCardTimer = ({
     onError: (mutationError) => {
       setError(getErrorMessage(mutationError, "Could not start timer."));
     },
-    onSuccess: (startedTimeEntry) => {
-      queryClient.setQueryData(queryKey, startedTimeEntry);
+    onSuccess: (result) => {
+      addTrackedTimeToCard(result.stoppedTimeEntry);
+      queryClient.setQueryData(activeTimeEntryQuery, result.activeTimeEntry);
       setError(null);
     },
   });
@@ -64,15 +91,16 @@ export const useCardTimer = ({
     onError: (mutationError) => {
       setError(getErrorMessage(mutationError, "Could not stop timer."));
     },
-    onSuccess: () => {
-      queryClient.setQueryData(queryKey, null);
+    onSuccess: (stoppedTimeEntry) => {
+      addTrackedTimeToCard(stoppedTimeEntry);
+      queryClient.setQueryData(activeTimeEntryQuery, null);
       setError(null);
     },
   });
 
   useEffect(() => {
-    queryClient.setQueryData(queryKey, initialActiveTimeEntry);
-  }, [initialActiveTimeEntry, queryClient, queryKey]);
+    queryClient.setQueryData(activeTimeEntryQuery, initialActiveTimeEntry);
+  }, [initialActiveTimeEntry, queryClient, activeTimeEntryQuery]);
 
   const startTimer = (cardId: string) => {
     startMutation.mutate({

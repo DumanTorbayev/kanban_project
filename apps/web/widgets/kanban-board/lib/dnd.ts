@@ -93,6 +93,13 @@ export function moveCardInColumns(
     if (targetCardIndex < 0) {
       targetCardIndex = targetColumn.cards.length;
     }
+
+    if (
+      activeLocation.columnIndex === targetColumnIndex &&
+      activeLocation.cardIndex < overCardLocation.cardIndex
+    ) {
+      targetCardIndex += 1;
+    }
   }
 
   const cardInTargetColumn: KanbanCard = {

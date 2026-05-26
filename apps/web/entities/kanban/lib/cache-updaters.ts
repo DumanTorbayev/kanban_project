@@ -16,6 +16,37 @@ function sortCards(cards: KanbanCard[]) {
   );
 }
 
+function findCard(columns: KanbanColumnWithCards[], cardId: string) {
+  for (const column of columns) {
+    const card = column.cards.find((currentCard) => currentCard.id === cardId);
+
+    if (card) {
+      return card;
+    }
+  }
+
+  return null;
+}
+
+function preserveCardClientFields(
+  columns: KanbanColumnWithCards[],
+  card: KanbanCard,
+) {
+  const currentCard = findCard(columns, card.id);
+
+  if (!currentCard) {
+    return card;
+  }
+
+  return {
+    ...card,
+    tracked_seconds: Math.max(
+      card.tracked_seconds,
+      currentCard.tracked_seconds,
+    ),
+  };
+}
+
 export function addColumnToBoard(
   columns: KanbanColumnWithCards[],
   column: KanbanColumnWithCards,
@@ -110,7 +141,7 @@ export function replaceCardInBoard(
   columns: KanbanColumnWithCards[],
   card: KanbanCard,
 ) {
-  return addCardToBoard(columns, card);
+  return addCardToBoard(columns, preserveCardClientFields(columns, card));
 }
 
 export function replaceCardIdInBoard(
@@ -119,6 +150,28 @@ export function replaceCardIdInBoard(
   card: KanbanCard,
 ) {
   return addCardToBoard(removeCardFromBoard(columns, cardId), card);
+}
+
+export function addTrackedSecondsToCard(
+  columns: KanbanColumnWithCards[],
+  cardId: string,
+  trackedSeconds: number,
+) {
+  if (!Number.isFinite(trackedSeconds) || trackedSeconds <= 0) {
+    return columns;
+  }
+
+  return columns.map((column) => ({
+    ...column,
+    cards: column.cards.map((card) =>
+      card.id === cardId
+        ? {
+            ...card,
+            tracked_seconds: card.tracked_seconds + Math.floor(trackedSeconds),
+          }
+        : card,
+    ),
+  }));
 }
 
 export function removeCardFromBoard(

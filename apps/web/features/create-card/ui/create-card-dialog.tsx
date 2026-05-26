@@ -78,6 +78,7 @@ export const CreateCardDialog = ({
         title: input.title,
         description: input.description,
         position: getNextPosition(lastPosition),
+        tracked_seconds: 0,
         created_by: "optimistic",
         assignee_id: null,
         created_at: now,

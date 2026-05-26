@@ -19,6 +19,7 @@ const createCard = (overrides: Partial<KanbanCard> = {}): KanbanCard => ({
   id: "card-1",
   position: 1024,
   title: "Card",
+  tracked_seconds: 0,
   updated_at: timestamp,
   ...overrides,
 });
@@ -98,6 +99,39 @@ describe("moveCardInColumns", () => {
       "card-3",
       "card-1",
       "card-2",
+    ]);
+  });
+
+  it("moves a card one position down in the same column", () => {
+    const columns = [
+      createColumn({
+        cards: [
+          createCard({
+            id: "card-1",
+            position: 1024,
+          }),
+          createCard({
+            id: "card-2",
+            position: 2048,
+          }),
+          createCard({
+            id: "card-3",
+            position: 3072,
+          }),
+        ],
+        id: "todo",
+      }),
+    ];
+
+    const result = moveCardInColumns(columns, "card-1", "card-2");
+
+    expect(result?.cardId).toBe("card-1");
+    expect(result?.columnId).toBe("todo");
+    expect(result?.position).toBe(2560);
+    expect(result?.columns[0]?.cards.map((card) => card.id)).toEqual([
+      "card-2",
+      "card-1",
+      "card-3",
     ]);
   });
 
