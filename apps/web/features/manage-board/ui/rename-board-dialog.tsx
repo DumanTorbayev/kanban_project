@@ -1,22 +1,10 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { useMemo, useState, type FormEvent } from "react";
-
-import {
-  boardQueryKey,
-  boardsQueryKey,
-} from "@/entities/board/model/query-keys";
-import {
-  type BoardDetails,
-  type BoardListItem,
-} from "@/entities/board/model/types";
-import { getErrorMessage } from "@/shared/lib/errors/get-error-message";
+import { type BoardDetails } from "@/entities/board/model/types";
 import { Button } from "@workspace/ui/components/button";
 import { Modal } from "@workspace/ui/components/modal";
 
-import { renameBoard, type RenameBoardInput } from "../actions/rename-board";
+import { useRenameBoardDialog } from "../model/use-rename-board-dialog";
 
 interface Props {
   board: BoardDetails;
@@ -25,92 +13,12 @@ interface Props {
 }
 
 export const RenameBoardDialog = ({ board, onOpenChange, open }: Props) => {
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const queryKey = useMemo(() => boardQueryKey(board.id), [board.id]);
-  const [error, setError] = useState<string | null>(null);
-  const mutation = useMutation<
-    BoardDetails,
-    Error,
-    RenameBoardInput,
-    { previousBoard?: BoardDetails; previousBoards?: BoardListItem[] }
-  >({
-    mutationFn: renameBoard,
-    onMutate: async (input) => {
-      await Promise.all([
-        queryClient.cancelQueries({
-          queryKey,
-        }),
-        queryClient.cancelQueries({
-          queryKey: boardsQueryKey,
-        }),
-      ]);
-
-      const previousBoard = queryClient.getQueryData<BoardDetails>(queryKey);
-      const previousBoards =
-        queryClient.getQueryData<BoardListItem[]>(boardsQueryKey);
-      const optimisticBoard: BoardDetails = {
-        ...board,
-        title: input.title,
-      };
-
-      queryClient.setQueryData(queryKey, optimisticBoard);
-      queryClient.setQueryData<BoardListItem[]>(boardsQueryKey, (current) =>
-        (current ?? []).map((item) =>
-          item.id === board.id
-            ? {
-                ...item,
-                title: input.title,
-              }
-            : item,
-        ),
-      );
-      setError(null);
-
-      return {
-        previousBoard,
-        previousBoards,
-      };
+  const { error, handleCancel, handleSubmit, isPending } = useRenameBoardDialog(
+    {
+      board,
+      onOpenChange,
     },
-    onError: (mutationError, _input, context) => {
-      if (context?.previousBoard) {
-        queryClient.setQueryData(queryKey, context.previousBoard);
-      }
-
-      if (context?.previousBoards) {
-        queryClient.setQueryData(boardsQueryKey, context.previousBoards);
-      }
-
-      setError(getErrorMessage(mutationError, "Could not rename board."));
-    },
-    onSuccess: (updatedBoard) => {
-      queryClient.setQueryData(queryKey, updatedBoard);
-      queryClient.setQueryData<BoardListItem[]>(boardsQueryKey, (current) =>
-        (current ?? []).map((item) =>
-          item.id === updatedBoard.id ? updatedBoard : item,
-        ),
-      );
-      onOpenChange(false);
-      router.refresh();
-    },
-  });
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const formData = new FormData(event.currentTarget);
-    const title = String(formData.get("title") ?? "").trim();
-
-    if (!title) {
-      setError("Board title is required.");
-      return;
-    }
-
-    mutation.mutate({
-      boardId: board.id,
-      title,
-    });
-  };
+  );
 
   return (
     <Modal
@@ -139,15 +47,15 @@ export const RenameBoardDialog = ({ board, onOpenChange, open }: Props) => {
 
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
-            disabled={mutation.isPending}
-            onClick={() => onOpenChange(false)}
+            disabled={isPending}
+            onClick={handleCancel}
             type="button"
             variant="outline"
           >
             Cancel
           </Button>
-          <Button disabled={mutation.isPending} type="submit">
-            {mutation.isPending ? "Saving..." : "Save changes"}
+          <Button disabled={isPending} type="submit">
+            {isPending ? "Saving..." : "Save changes"}
           </Button>
         </div>
       </form>
