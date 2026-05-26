@@ -5,6 +5,7 @@ import { useEffect, useMemo } from "react";
 
 import { kanbanBoardQueryKey } from "@/entities/kanban/model/query-keys";
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
+import { type ActiveTimeEntry } from "@/entities/time-entry/model/types";
 import { CreateKanbanColumnForm } from "@/features/create-kanban-column/ui/create-kanban-column-form";
 
 import { useKanbanBoardRealtime } from "../model/use-kanban-board-realtime";
@@ -13,15 +14,19 @@ import { KanbanDndBoard } from "./kanban-dnd-board";
 import { RealtimeStatusIndicator } from "./realtime-status-indicator";
 
 interface Props {
+  activeTimeEntry: ActiveTimeEntry | null;
   boardId: string;
   columns: KanbanColumnWithCards[];
   error?: string;
+  timerError?: string;
 }
 
 export const KanbanBoard = ({
+  activeTimeEntry,
   boardId,
   columns: initialColumns,
   error,
+  timerError,
 }: Props) => {
   const queryClient = useQueryClient();
   const queryKey = useMemo(() => kanbanBoardQueryKey(boardId), [boardId]);
@@ -56,6 +61,12 @@ export const KanbanBoard = ({
         </p>
       ) : null}
 
+      {timerError ? (
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {timerError}
+        </p>
+      ) : null}
+
       {error ? (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error}
@@ -72,7 +83,11 @@ export const KanbanBoard = ({
       ) : null}
 
       {!error && hasColumns ? (
-        <KanbanDndBoard boardId={boardId} columns={columns} />
+        <KanbanDndBoard
+          activeTimeEntry={activeTimeEntry}
+          boardId={boardId}
+          columns={columns}
+        />
       ) : null}
     </section>
   );

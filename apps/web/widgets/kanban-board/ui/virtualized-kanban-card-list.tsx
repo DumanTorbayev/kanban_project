@@ -8,22 +8,25 @@ import {
 import { useMemo, useRef } from "react";
 
 import { type KanbanCard } from "@/entities/kanban/model/types";
+import { type CardTimerControls } from "@/features/track-card-time/model/use-card-timer";
 import { cn } from "@workspace/ui/lib/utils";
 
 import { SortableKanbanCard } from "./sortable-kanban-card";
 
-const ESTIMATED_CARD_HEIGHT = 112;
+const ESTIMATED_CARD_HEIGHT = 148;
 
 interface Props {
   cards: KanbanCard[];
   disabled: boolean;
   isOver: boolean;
+  timer: CardTimerControls;
 }
 
 export const VirtualizedKanbanCardList = ({
   cards,
   disabled,
   isOver,
+  timer,
 }: Props) => {
   const parentRef = useRef<HTMLDivElement>(null);
   const cardIds = useMemo(() => cards.map((card) => card.id), [cards]);
@@ -69,7 +72,11 @@ export const VirtualizedKanbanCardList = ({
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
                 >
-                  <SortableKanbanCard card={card} disabled={disabled} />
+                  <SortableKanbanCard
+                    card={card}
+                    disabled={disabled}
+                    timer={timer}
+                  />
                 </div>
               );
             })}

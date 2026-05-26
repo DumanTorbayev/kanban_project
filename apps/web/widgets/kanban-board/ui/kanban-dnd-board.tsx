@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import { KanbanCard } from "@/entities/kanban/ui/kanban-card";
+import { type ActiveTimeEntry } from "@/entities/time-entry/model/types";
+import { useCardTimer } from "@/features/track-card-time/model/use-card-timer";
 
 import { useCreateCardDialog } from "../model/use-create-card-dialog";
 import { useKanbanBoardCache } from "../model/use-kanban-board-cache";
@@ -19,16 +21,25 @@ const CreateCardDialog = dynamic(() =>
 );
 
 interface Props {
+  activeTimeEntry: ActiveTimeEntry | null;
   boardId: string;
   columns: KanbanColumnWithCards[];
 }
 
-export const KanbanDndBoard = ({ boardId, columns: initialColumns }: Props) => {
+export const KanbanDndBoard = ({
+  activeTimeEntry,
+  boardId,
+  columns: initialColumns,
+}: Props) => {
   const { columns, queryClient, queryKey } = useKanbanBoardCache({
     boardId,
     initialColumns,
   });
   const createCardDialog = useCreateCardDialog();
+  const timer = useCardTimer({
+    boardId,
+    initialActiveTimeEntry: activeTimeEntry,
+  });
   const cardMove = useKanbanCardMove({
     queryClient,
     queryKey,
@@ -56,6 +67,12 @@ export const KanbanDndBoard = ({ boardId, columns: initialColumns }: Props) => {
           </p>
         ) : null}
 
+        {timer.error ? (
+          <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {timer.error}
+          </p>
+        ) : null}
+
         <div className="-mx-1 overflow-x-auto px-1 pb-2">
           <div className="flex min-h-112 min-w-full gap-4">
             {columns.map((column) => (
@@ -64,6 +81,7 @@ export const KanbanDndBoard = ({ boardId, columns: initialColumns }: Props) => {
                 isMutating={cardMove.isMoving}
                 key={column.id}
                 onCreateCard={createCardDialog.openForColumn}
+                timer={timer}
               />
             ))}
           </div>

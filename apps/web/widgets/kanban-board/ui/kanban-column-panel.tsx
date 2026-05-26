@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import { ColumnActionsMenu } from "@/features/manage-kanban-column/ui/column-actions-menu";
+import { type CardTimerControls } from "@/features/track-card-time/model/use-card-timer";
 import { Button } from "@workspace/ui/components/button";
 
 import { VirtualizedKanbanCardList } from "./virtualized-kanban-card-list";
@@ -12,6 +13,7 @@ import { VirtualizedKanbanCardList } from "./virtualized-kanban-card-list";
 interface Props {
   column: KanbanColumnWithCards;
   isMutating: boolean;
+  timer: CardTimerControls;
   onCreateCard: (columnId: string) => void;
 }
 
@@ -19,6 +21,7 @@ export const KanbanColumnPanel = ({
   column,
   isMutating,
   onCreateCard,
+  timer,
 }: Props) => {
   const { isOver, setNodeRef } = useDroppable({
     id: column.id,
@@ -55,6 +58,7 @@ export const KanbanColumnPanel = ({
         cards={column.cards}
         disabled={isMutating}
         isOver={isOver}
+        timer={timer}
       />
     </section>
   );
