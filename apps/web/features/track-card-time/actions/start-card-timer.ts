@@ -6,12 +6,20 @@ import {
   normalizeTimeEntry,
   type TimeEntryRow,
 } from "@/entities/time-entry/lib/normalize-time-entry";
-import { type ActiveTimeEntry } from "@/entities/time-entry/model/types";
+import {
+  type ActiveTimeEntry,
+  type TimeEntry,
+} from "@/entities/time-entry/model/types";
 import { requireUser } from "@/shared/lib/auth/require-user";
 
 export type StartCardTimerInput = {
   boardId: string;
   cardId: string;
+};
+
+export type StartCardTimerResult = {
+  activeTimeEntry: ActiveTimeEntry;
+  stoppedTimeEntry: TimeEntry | null;
 };
 
 const timeEntrySelect =
@@ -23,7 +31,9 @@ const assertRequired = (value: string, message: string) => {
   }
 };
 
-export async function startCardTimer(input: StartCardTimerInput) {
+export async function startCardTimer(
+  input: StartCardTimerInput,
+): Promise<StartCardTimerResult> {
   assertRequired(input.boardId, "Board id is required.");
   assertRequired(input.cardId, "Card id is required.");
 
@@ -42,6 +52,8 @@ export async function startCardTimer(input: StartCardTimerInput) {
     throw new Error(activeEntryError.message);
   }
 
+  let stoppedTimeEntry: TimeEntry | null = null;
+
   if (activeEntry) {
     const normalizedActiveEntry = normalizeTimeEntry(
       activeEntry as TimeEntryRow,
@@ -51,10 +63,29 @@ export async function startCardTimer(input: StartCardTimerInput) {
       normalizedActiveEntry.board_id === input.boardId &&
       normalizedActiveEntry.card_id === input.cardId
     ) {
-      return normalizedActiveEntry;
+      return {
+        activeTimeEntry: normalizedActiveEntry,
+        stoppedTimeEntry: null,
+      };
     }
 
-    throw new Error("Stop the current timer before starting another one.");
+    const { data: stoppedEntry, error: stopError } = await supabase
+      .from("time_entries")
+      .update({
+        stopped_at: new Date().toISOString(),
+      })
+      .eq("id", normalizedActiveEntry.id)
+      .eq("user_id", user.id)
+      .is("stopped_at", null)
+      .select(timeEntrySelect)
+      .single();
+
+    if (stopError) {
+      throw new Error(stopError.message);
+    }
+
+    stoppedTimeEntry = normalizeTimeEntry(stoppedEntry as TimeEntryRow);
+    revalidatePath("/boards/" + stoppedTimeEntry.board_id);
   }
 
   const { data, error } = await supabase
@@ -73,5 +104,10 @@ export async function startCardTimer(input: StartCardTimerInput) {
 
   revalidatePath("/boards/" + input.boardId);
 
-  return normalizeTimeEntry(data as TimeEntryRow) as ActiveTimeEntry;
+  return {
+    activeTimeEntry: normalizeTimeEntry(
+      data as TimeEntryRow,
+    ) as ActiveTimeEntry,
+    stoppedTimeEntry,
+  };
 }

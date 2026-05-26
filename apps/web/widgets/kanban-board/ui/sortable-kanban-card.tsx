@@ -59,6 +59,7 @@ export const SortableKanbanCard = ({ card, disabled, timer }: Props) => {
                 cardId={card.id}
                 disabled={disabled}
                 timer={timer}
+                trackedSeconds={card.tracked_seconds}
               />
             }
           />
