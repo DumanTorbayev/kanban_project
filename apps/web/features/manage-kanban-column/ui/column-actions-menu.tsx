@@ -1,13 +1,18 @@
 "use client";
 
 import { Pencil, Trash2 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import { ActionMenu } from "@workspace/ui/components/action-menu";
 
-import { DeleteColumnDialog } from "./delete-column-dialog";
-import { RenameColumnDialog } from "./rename-column-dialog";
+const RenameColumnDialog = dynamic(() =>
+  import("./rename-column-dialog").then((module) => module.RenameColumnDialog),
+);
+const DeleteColumnDialog = dynamic(() =>
+  import("./delete-column-dialog").then((module) => module.DeleteColumnDialog),
+);
 
 interface Props {
   column: KanbanColumnWithCards;
@@ -39,16 +44,20 @@ export const ColumnActionsMenu = ({ column, disabled }: Props) => {
         ]}
         label="Column actions"
       />
-      <RenameColumnDialog
-        column={column}
-        onOpenChange={setRenameOpen}
-        open={renameOpen}
-      />
-      <DeleteColumnDialog
-        column={column}
-        onOpenChange={setDeleteOpen}
-        open={deleteOpen}
-      />
+      {renameOpen ? (
+        <RenameColumnDialog
+          column={column}
+          onOpenChange={setRenameOpen}
+          open={renameOpen}
+        />
+      ) : null}
+      {deleteOpen ? (
+        <DeleteColumnDialog
+          column={column}
+          onOpenChange={setDeleteOpen}
+          open={deleteOpen}
+        />
+      ) : null}
     </>
   );
 };

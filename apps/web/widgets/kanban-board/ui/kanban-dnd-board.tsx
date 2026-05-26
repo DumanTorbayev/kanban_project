@@ -1,16 +1,22 @@
 "use client";
 
 import { DndContext, DragOverlay } from "@dnd-kit/core";
+import dynamic from "next/dynamic";
 
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import { KanbanCard } from "@/entities/kanban/ui/kanban-card";
-import { CreateCardDialog } from "@/features/create-card/ui/create-card-dialog";
 
 import { useCreateCardDialog } from "../model/use-create-card-dialog";
 import { useKanbanBoardCache } from "../model/use-kanban-board-cache";
 import { useKanbanCardMove } from "../model/use-kanban-card-move";
 import { useKanbanDnd } from "../model/use-kanban-dnd";
 import { KanbanColumnPanel } from "./kanban-column-panel";
+
+const CreateCardDialog = dynamic(() =>
+  import("@/features/create-card/ui/create-card-dialog").then(
+    (module) => module.CreateCardDialog,
+  ),
+);
 
 interface Props {
   boardId: string;
@@ -72,14 +78,16 @@ export const KanbanDndBoard = ({ boardId, columns: initialColumns }: Props) => {
         ) : null}
       </DragOverlay>
 
-      <CreateCardDialog
-        boardId={boardId}
-        key={createCardDialog.dialogKey}
-        columns={columns}
-        onOpenChange={createCardDialog.handleOpenChange}
-        open={createCardDialog.open}
-        selectedColumnId={createCardDialog.columnId}
-      />
+      {createCardDialog.open ? (
+        <CreateCardDialog
+          boardId={boardId}
+          key={createCardDialog.dialogKey}
+          columns={columns}
+          onOpenChange={createCardDialog.handleOpenChange}
+          open={createCardDialog.open}
+          selectedColumnId={createCardDialog.columnId}
+        />
+      ) : null}
     </DndContext>
   );
 };

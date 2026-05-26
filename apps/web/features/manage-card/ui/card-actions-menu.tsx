@@ -1,13 +1,18 @@
 "use client";
 
 import { Pencil, Trash2 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { type KanbanCard } from "@/entities/kanban/model/types";
 import { ActionMenu } from "@workspace/ui/components/action-menu";
 
-import { DeleteCardDialog } from "./delete-card-dialog";
-import { EditCardDialog } from "./edit-card-dialog";
+const EditCardDialog = dynamic(() =>
+  import("./edit-card-dialog").then((module) => module.EditCardDialog),
+);
+const DeleteCardDialog = dynamic(() =>
+  import("./delete-card-dialog").then((module) => module.DeleteCardDialog),
+);
 
 interface Props {
   card: KanbanCard;
@@ -41,12 +46,20 @@ export const CardActionsMenu = ({ card, className, disabled }: Props) => {
         ]}
         label="Card actions"
       />
-      <EditCardDialog card={card} onOpenChange={setEditOpen} open={editOpen} />
-      <DeleteCardDialog
-        card={card}
-        onOpenChange={setDeleteOpen}
-        open={deleteOpen}
-      />
+      {editOpen ? (
+        <EditCardDialog
+          card={card}
+          onOpenChange={setEditOpen}
+          open={editOpen}
+        />
+      ) : null}
+      {deleteOpen ? (
+        <DeleteCardDialog
+          card={card}
+          onOpenChange={setDeleteOpen}
+          open={deleteOpen}
+        />
+      ) : null}
     </>
   );
 };
