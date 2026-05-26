@@ -163,6 +163,8 @@ Git hooks run `lint-staged` before commits and Commitlint for commit messages.
 - Dynamic imports for heavy modules
 - Lighthouse performance checks
 
+Performance goals and verification steps are tracked in [`docs/performance.md`](docs/performance.md).
+
 ### Time Tracking and Analytics
 
 - Task timer start, pause, stop
