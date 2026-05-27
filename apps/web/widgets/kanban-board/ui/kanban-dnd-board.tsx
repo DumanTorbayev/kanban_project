@@ -9,9 +9,12 @@ import { KanbanCard } from "@/entities/kanban/ui/kanban-card";
 import {
   type ActiveTimeEntry,
   type BoardTimeSummary,
+  type CompletedTimeEntry,
 } from "@/entities/time-entry/model/types";
 import { useCardTimer } from "@/features/track-card-time/model/use-card-timer";
+import { useTimeEntriesHistory } from "@/features/track-card-time/model/use-time-entries-history";
 import { useTimeEntriesSummary } from "@/features/track-card-time/model/use-time-entries-summary";
+import { TimeEntriesHistory } from "@/features/track-card-time/ui/time-entries-history";
 import { TimeEntriesSummary } from "@/features/track-card-time/ui/time-entries-summary";
 
 import { useCreateCardDialog } from "../model/use-create-card-dialog";
@@ -30,6 +33,7 @@ interface Props {
   activeTimeEntry: ActiveTimeEntry | null;
   boardId: string;
   columns: KanbanColumnWithCards[];
+  timeEntries: CompletedTimeEntry[];
   timeSummary: BoardTimeSummary;
 }
 
@@ -37,6 +41,7 @@ export const KanbanDndBoard = ({
   activeTimeEntry,
   boardId,
   columns: initialColumns,
+  timeEntries: initialTimeEntries,
   timeSummary: initialTimeSummary,
 }: Props) => {
   const { columns, queryClient, queryKey } = useKanbanBoardCache({
@@ -58,6 +63,10 @@ export const KanbanDndBoard = ({
   const timeEntriesSummary = useTimeEntriesSummary({
     boardId,
     initialSummary: initialTimeSummary,
+  });
+  const timeEntriesHistory = useTimeEntriesHistory({
+    boardId,
+    initialTimeEntries,
   });
   const timer = useCardTimer({
     boardId,
@@ -88,6 +97,11 @@ export const KanbanDndBoard = ({
           activeTimeEntry={timer.activeTimeEntry}
           cardTitlesById={cardTitlesById}
           summary={timeEntriesSummary.summary}
+        />
+
+        <TimeEntriesHistory
+          cardTitlesById={cardTitlesById}
+          timeEntries={timeEntriesHistory.timeEntries}
         />
 
         {cardMove.moveError ? (

@@ -32,3 +32,10 @@ export type BoardTimeSummary = {
   recentEntries: CompletedTimeEntry[];
   totalDurationSeconds: number;
 };
+
+export type TimeEntriesHistoryPeriod = "all" | "today" | "week";
+
+export type TimeEntriesHistoryFilters = {
+  cardId: string | null;
+  period: TimeEntriesHistoryPeriod;
+};

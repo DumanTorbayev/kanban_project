@@ -8,29 +8,11 @@ import {
   type BoardTimeSummary,
 } from "@/entities/time-entry/model/types";
 
-const stoppedAtFormatter = new Intl.DateTimeFormat("en", {
-  day: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  month: "short",
-  timeZone: "UTC",
-});
-
 interface Props {
   activeTimeEntry: ActiveTimeEntry | null;
   cardTitlesById: Record<string, string>;
   summary: BoardTimeSummary;
 }
-
-const formatStoppedAt = (stoppedAt: string) => {
-  const date = new Date(stoppedAt);
-
-  if (Number.isNaN(date.getTime())) {
-    return "Recently";
-  }
-
-  return `${stoppedAtFormatter.format(date)} UTC`;
-};
 
 export const TimeEntriesSummary = ({
   activeTimeEntry,
@@ -97,35 +79,6 @@ export const TimeEntriesSummary = ({
           </div>
         </dl>
       </div>
-
-      {summary.recentEntries.length > 0 ? (
-        <div className="mt-4 border-t pt-3">
-          <p className="text-xs font-medium text-muted-foreground">
-            Recent sessions
-          </p>
-          <ol className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-5">
-            {summary.recentEntries.map((timeEntry) => {
-              const cardTitle =
-                cardTitlesById[timeEntry.card_id] ?? "Untitled card";
-
-              return (
-                <li className="min-w-0 border-l pl-3" key={timeEntry.id}>
-                  <p className="truncate text-sm font-medium" title={cardTitle}>
-                    {cardTitle}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    <span className="font-mono">
-                      {formatTimerDuration(timeEntry.duration_seconds)}
-                    </span>
-                    <span aria-hidden="true"> / </span>
-                    {formatStoppedAt(timeEntry.stopped_at)}
-                  </p>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      ) : null}
     </section>
   );
 };

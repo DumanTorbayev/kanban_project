@@ -8,6 +8,7 @@ import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import {
   type ActiveTimeEntry,
   type BoardTimeSummary,
+  type CompletedTimeEntry,
 } from "@/entities/time-entry/model/types";
 import { CreateKanbanColumnForm } from "@/features/create-kanban-column/ui/create-kanban-column-form";
 
@@ -21,6 +22,7 @@ interface Props {
   boardId: string;
   columns: KanbanColumnWithCards[];
   error?: string;
+  timeEntries: CompletedTimeEntry[];
   timeSummary: BoardTimeSummary;
   timerError?: string;
 }
@@ -30,6 +32,7 @@ export const KanbanBoard = ({
   boardId,
   columns: initialColumns,
   error,
+  timeEntries,
   timeSummary,
   timerError,
 }: Props) => {
@@ -92,6 +95,7 @@ export const KanbanBoard = ({
           activeTimeEntry={activeTimeEntry}
           boardId={boardId}
           columns={columns}
+          timeEntries={timeEntries}
           timeSummary={timeSummary}
         />
       ) : null}
