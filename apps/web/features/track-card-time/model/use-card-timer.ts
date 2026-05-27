@@ -7,13 +7,16 @@ import { addTrackedSecondsToCard } from "@/entities/kanban/lib/cache-updaters";
 import { kanbanBoardQueryKey } from "@/entities/kanban/model/query-keys";
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import { addCompletedTimeEntryToSummary } from "@/entities/time-entry/lib/build-board-time-summary";
+import { addCompletedTimeEntryToHistory } from "@/entities/time-entry/lib/filter-time-entries";
 import {
   activeTimeEntryQueryKey,
+  boardTimeEntriesQueryKey,
   boardTimeSummaryQueryKey,
 } from "@/entities/time-entry/model/query-keys";
 import {
   type ActiveTimeEntry,
   type BoardTimeSummary,
+  type CompletedTimeEntry,
   type TimeEntry,
 } from "@/entities/time-entry/model/types";
 import { getErrorMessage } from "@/shared/lib/errors/get-error-message";
@@ -58,6 +61,10 @@ export const useCardTimer = ({
     () => boardTimeSummaryQueryKey(boardId),
     [boardId],
   );
+  const timeEntriesQuery = useMemo(
+    () => boardTimeEntriesQueryKey(boardId),
+    [boardId],
+  );
   const [error, setError] = useState<string | null>(null);
   const { data: activeTimeEntry = null } = useQuery({
     enabled: false,
@@ -85,6 +92,13 @@ export const useCardTimer = ({
         currentSummary
           ? addCompletedTimeEntryToSummary(currentSummary, timeEntry)
           : currentSummary,
+    );
+    queryClient.setQueryData<CompletedTimeEntry[]>(
+      timeEntriesQuery,
+      (currentTimeEntries) =>
+        currentTimeEntries
+          ? addCompletedTimeEntryToHistory(currentTimeEntries, timeEntry)
+          : currentTimeEntries,
     );
   };
   const startMutation = useMutation<

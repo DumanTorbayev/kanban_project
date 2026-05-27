@@ -9,3 +9,9 @@ export const boardTimeSummaryQueryKey = (boardId: string) => [
   "summary",
   boardId,
 ];
+
+export const boardTimeEntriesQueryKey = (boardId: string) => [
+  "time-entry",
+  "history",
+  boardId,
+];
