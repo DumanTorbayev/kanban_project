@@ -2,11 +2,17 @@
 
 import { DndContext, DragOverlay } from "@dnd-kit/core";
 import dynamic from "next/dynamic";
+import { useMemo } from "react";
 
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
 import { KanbanCard } from "@/entities/kanban/ui/kanban-card";
-import { type ActiveTimeEntry } from "@/entities/time-entry/model/types";
+import {
+  type ActiveTimeEntry,
+  type BoardTimeSummary,
+} from "@/entities/time-entry/model/types";
 import { useCardTimer } from "@/features/track-card-time/model/use-card-timer";
+import { useTimeEntriesSummary } from "@/features/track-card-time/model/use-time-entries-summary";
+import { TimeEntriesSummary } from "@/features/track-card-time/ui/time-entries-summary";
 
 import { useCreateCardDialog } from "../model/use-create-card-dialog";
 import { useKanbanBoardCache } from "../model/use-kanban-board-cache";
@@ -24,18 +30,35 @@ interface Props {
   activeTimeEntry: ActiveTimeEntry | null;
   boardId: string;
   columns: KanbanColumnWithCards[];
+  timeSummary: BoardTimeSummary;
 }
 
 export const KanbanDndBoard = ({
   activeTimeEntry,
   boardId,
   columns: initialColumns,
+  timeSummary: initialTimeSummary,
 }: Props) => {
   const { columns, queryClient, queryKey } = useKanbanBoardCache({
     boardId,
     initialColumns,
   });
+  const cardTitlesById = useMemo(() => {
+    const nextCardTitlesById: Record<string, string> = {};
+
+    for (const column of columns) {
+      for (const card of column.cards) {
+        nextCardTitlesById[card.id] = card.title;
+      }
+    }
+
+    return nextCardTitlesById;
+  }, [columns]);
   const createCardDialog = useCreateCardDialog();
+  const timeEntriesSummary = useTimeEntriesSummary({
+    boardId,
+    initialSummary: initialTimeSummary,
+  });
   const timer = useCardTimer({
     boardId,
     initialActiveTimeEntry: activeTimeEntry,
@@ -61,6 +84,12 @@ export const KanbanDndBoard = ({
       sensors={dnd.sensors}
     >
       <div className="space-y-3">
+        <TimeEntriesSummary
+          activeTimeEntry={timer.activeTimeEntry}
+          cardTitlesById={cardTitlesById}
+          summary={timeEntriesSummary.summary}
+        />
+
         {cardMove.moveError ? (
           <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {cardMove.moveError}

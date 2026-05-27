@@ -5,7 +5,10 @@ import { useEffect, useMemo } from "react";
 
 import { kanbanBoardQueryKey } from "@/entities/kanban/model/query-keys";
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
-import { type ActiveTimeEntry } from "@/entities/time-entry/model/types";
+import {
+  type ActiveTimeEntry,
+  type BoardTimeSummary,
+} from "@/entities/time-entry/model/types";
 import { CreateKanbanColumnForm } from "@/features/create-kanban-column/ui/create-kanban-column-form";
 
 import { useKanbanBoardRealtime } from "../model/use-kanban-board-realtime";
@@ -18,6 +21,7 @@ interface Props {
   boardId: string;
   columns: KanbanColumnWithCards[];
   error?: string;
+  timeSummary: BoardTimeSummary;
   timerError?: string;
 }
 
@@ -26,6 +30,7 @@ export const KanbanBoard = ({
   boardId,
   columns: initialColumns,
   error,
+  timeSummary,
   timerError,
 }: Props) => {
   const queryClient = useQueryClient();
@@ -87,6 +92,7 @@ export const KanbanBoard = ({
           activeTimeEntry={activeTimeEntry}
           boardId={boardId}
           columns={columns}
+          timeSummary={timeSummary}
         />
       ) : null}
     </section>

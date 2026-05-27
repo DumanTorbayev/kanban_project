@@ -6,9 +6,14 @@ import { useEffect, useMemo, useState } from "react";
 import { addTrackedSecondsToCard } from "@/entities/kanban/lib/cache-updaters";
 import { kanbanBoardQueryKey } from "@/entities/kanban/model/query-keys";
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
-import { activeTimeEntryQueryKey } from "@/entities/time-entry/model/query-keys";
+import { addCompletedTimeEntryToSummary } from "@/entities/time-entry/lib/build-board-time-summary";
+import {
+  activeTimeEntryQueryKey,
+  boardTimeSummaryQueryKey,
+} from "@/entities/time-entry/model/query-keys";
 import {
   type ActiveTimeEntry,
+  type BoardTimeSummary,
   type TimeEntry,
 } from "@/entities/time-entry/model/types";
 import { getErrorMessage } from "@/shared/lib/errors/get-error-message";
@@ -49,6 +54,10 @@ export const useCardTimer = ({
     () => kanbanBoardQueryKey(boardId),
     [boardId],
   );
+  const timeSummaryQuery = useMemo(
+    () => boardTimeSummaryQueryKey(boardId),
+    [boardId],
+  );
   const [error, setError] = useState<string | null>(null);
   const { data: activeTimeEntry = null } = useQuery({
     enabled: false,
@@ -56,7 +65,7 @@ export const useCardTimer = ({
     queryFn: () => Promise.resolve(initialActiveTimeEntry),
     queryKey: activeTimeEntryQuery,
   });
-  const addTrackedTimeToCard = (timeEntry: TimeEntry | null) => {
+  const syncCompletedTimeEntry = (timeEntry: TimeEntry | null) => {
     if (!timeEntry) {
       return;
     }
@@ -70,6 +79,13 @@ export const useCardTimer = ({
           timeEntry.duration_seconds,
         ),
     );
+    queryClient.setQueryData<BoardTimeSummary>(
+      timeSummaryQuery,
+      (currentSummary) =>
+        currentSummary
+          ? addCompletedTimeEntryToSummary(currentSummary, timeEntry)
+          : currentSummary,
+    );
   };
   const startMutation = useMutation<
     StartCardTimerResult,
@@ -81,7 +97,7 @@ export const useCardTimer = ({
       setError(getErrorMessage(mutationError, "Could not start timer."));
     },
     onSuccess: (result) => {
-      addTrackedTimeToCard(result.stoppedTimeEntry);
+      syncCompletedTimeEntry(result.stoppedTimeEntry);
       queryClient.setQueryData(activeTimeEntryQuery, result.activeTimeEntry);
       setError(null);
     },
@@ -92,7 +108,7 @@ export const useCardTimer = ({
       setError(getErrorMessage(mutationError, "Could not stop timer."));
     },
     onSuccess: (stoppedTimeEntry) => {
-      addTrackedTimeToCard(stoppedTimeEntry);
+      syncCompletedTimeEntry(stoppedTimeEntry);
       queryClient.setQueryData(activeTimeEntryQuery, null);
       setError(null);
     },

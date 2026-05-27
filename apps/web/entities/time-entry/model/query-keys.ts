@@ -3,3 +3,9 @@ export const activeTimeEntryQueryKey = (boardId: string) => [
   "active",
   boardId,
 ];
+
+export const boardTimeSummaryQueryKey = (boardId: string) => [
+  "time-entry",
+  "summary",
+  boardId,
+];
