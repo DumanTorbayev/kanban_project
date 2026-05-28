@@ -1,6 +1,7 @@
 "use client";
 
 import { BarChart3, CircleGauge, Clock3, ListChecks } from "lucide-react";
+import dynamic from "next/dynamic";
 
 import { formatTimerDuration } from "@/entities/time-entry/lib/format-timer-duration";
 import { type CompletedTimeEntry } from "@/entities/time-entry/model/types";
@@ -16,11 +17,31 @@ interface Props {
   timeEntries: CompletedTimeEntry[];
 }
 
-const dateFormatter = new Intl.DateTimeFormat("en", {
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-});
+const ChartLoading = () => (
+  <div className="mt-3 h-40 animate-pulse rounded-md bg-muted" />
+);
+
+const TimeDailyTrendChart = dynamic(
+  () =>
+    import("./time-daily-trend-chart").then(
+      (module) => module.TimeDailyTrendChart,
+    ),
+  {
+    loading: ChartLoading,
+    ssr: false,
+  },
+);
+
+const TimeCardBreakdownChart = dynamic(
+  () =>
+    import("./time-card-breakdown-chart").then(
+      (module) => module.TimeCardBreakdownChart,
+    ),
+  {
+    loading: ChartLoading,
+    ssr: false,
+  },
+);
 
 export const TimeAnalyticsPanel = ({ cardTitlesById, timeEntries }: Props) => {
   const { analytics, selectedPeriod, setSelectedPeriod } = useTimeAnalytics({
@@ -30,10 +51,6 @@ export const TimeAnalyticsPanel = ({ cardTitlesById, timeEntries }: Props) => {
   const visibleCardBreakdown = analytics.cardBreakdown.slice(
     0,
     MAX_VISIBLE_CARDS,
-  );
-  const maxDailyDurationSeconds = Math.max(
-    1,
-    ...visibleDailyTrend.map((day) => day.totalDurationSeconds),
   );
 
   return (
@@ -112,38 +129,7 @@ export const TimeAnalyticsPanel = ({ cardTitlesById, timeEntries }: Props) => {
           </div>
 
           {visibleDailyTrend.length > 0 ? (
-            <div className="mt-3 flex h-40 items-end gap-2">
-              {visibleDailyTrend.map((day) => {
-                const heightPercent = Math.max(
-                  8,
-                  Math.round(
-                    (day.totalDurationSeconds / maxDailyDurationSeconds) * 100,
-                  ),
-                );
-
-                return (
-                  <div
-                    className="flex min-w-0 flex-1 flex-col items-center gap-2"
-                    key={day.date}
-                  >
-                    <div className="flex h-28 w-full items-end rounded-sm bg-muted">
-                      <div
-                        aria-label={formatTimerDuration(
-                          day.totalDurationSeconds,
-                        )}
-                        className="w-full rounded-sm bg-violet-500/70"
-                        style={{
-                          height: heightPercent + "%",
-                        }}
-                      />
-                    </div>
-                    <span className="max-w-full truncate text-xs text-muted-foreground">
-                      {dateFormatter.format(new Date(day.date + "T00:00:00Z"))}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+            <TimeDailyTrendChart dailyTrend={visibleDailyTrend} />
           ) : (
             <div className="mt-3 rounded-md border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
               No tracked time for this period.
@@ -160,33 +146,10 @@ export const TimeAnalyticsPanel = ({ cardTitlesById, timeEntries }: Props) => {
           </div>
 
           {visibleCardBreakdown.length > 0 ? (
-            <ol className="mt-3 space-y-3">
-              {visibleCardBreakdown.map((card) => {
-                const cardTitle =
-                  cardTitlesById[card.cardId] ?? "Untitled card";
-
-                return (
-                  <li className="space-y-1.5" key={card.cardId}>
-                    <div className="flex items-center justify-between gap-3 text-sm">
-                      <span className="truncate font-medium" title={cardTitle}>
-                        {cardTitle}
-                      </span>
-                      <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                        {formatTimerDuration(card.totalDurationSeconds)}
-                      </span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-violet-500/70"
-                        style={{
-                          width: card.percentage + "%",
-                        }}
-                      />
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
+            <TimeCardBreakdownChart
+              cardBreakdown={visibleCardBreakdown}
+              cardTitlesById={cardTitlesById}
+            />
           ) : (
             <div className="mt-3 rounded-md border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
               No cards tracked for this period.
