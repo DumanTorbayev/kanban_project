@@ -2,25 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 
+import { TIME_ENTRY_COLUMNS } from "@/entities/time-entry/model/columns";
 import {
   normalizeTimeEntry,
   type TimeEntryRow,
 } from "@/entities/time-entry/lib/normalize-time-entry";
 import { requireUser } from "@/shared/lib/auth/require-user";
+import { assertRequired } from "@/shared/lib/validation/assert";
 
 export type StopCardTimerInput = {
   boardId: string;
   cardId: string;
   timeEntryId: string;
-};
-
-const timeEntrySelect =
-  "id, board_id, card_id, user_id, started_at, stopped_at, duration_seconds, created_at, updated_at";
-
-const assertRequired = (value: string, message: string) => {
-  if (!value.trim()) {
-    throw new Error(message);
-  }
 };
 
 export async function stopCardTimer(input: StopCardTimerInput) {
@@ -41,7 +34,7 @@ export async function stopCardTimer(input: StopCardTimerInput) {
     .eq("card_id", input.cardId)
     .eq("user_id", user.id)
     .is("stopped_at", null)
-    .select(timeEntrySelect)
+    .select(TIME_ENTRY_COLUMNS)
     .maybeSingle();
 
   if (error) {

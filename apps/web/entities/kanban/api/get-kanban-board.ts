@@ -5,6 +5,7 @@ import {
   type KanbanCardRow,
   type KanbanColumnRow,
 } from "../lib/normalize-kanban";
+import { KANBAN_CARD_COLUMNS, KANBAN_COLUMN_COLUMNS } from "../model/columns";
 import { type KanbanColumnWithCards } from "../model/types";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
@@ -41,16 +42,14 @@ export async function getKanbanBoard(
   const [columnsResult, cardsResult, timeEntriesResult] = await Promise.all([
     supabase
       .from("board_columns")
-      .select("id, board_id, title, position, created_at, updated_at")
+      .select(KANBAN_COLUMN_COLUMNS)
       .eq("board_id", boardId)
       .order("position", {
         ascending: true,
       }),
     supabase
       .from("cards")
-      .select(
-        "id, board_id, column_id, title, description, position, created_by, assignee_id, created_at, updated_at",
-      )
+      .select(KANBAN_CARD_COLUMNS)
       .eq("board_id", boardId)
       .order("position", {
         ascending: true,
