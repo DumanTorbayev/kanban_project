@@ -5,11 +5,10 @@ import { type ChangeEvent } from "react";
 
 import { formatTimerDuration } from "@/entities/time-entry/lib/format-timer-duration";
 import { type CompletedTimeEntry } from "@/entities/time-entry/model/types";
+import { ExportTimeReportButton } from "@/features/export-time-report/ui/export-time-report-button";
 import { TimeEntryActionsMenu } from "@/features/manage-time-entry/ui/time-entry-actions-menu";
-import {
-  periodOptions,
-  useTimeEntriesHistoryFilters,
-} from "@/features/track-card-time/model/use-time-entries-history-filters";
+import { timeReportPeriodOptions } from "@/features/track-card-time/model/time-report-period-options";
+import { useTimeEntriesHistoryFilters } from "@/features/track-card-time/model/use-time-entries-history-filters";
 import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
 
@@ -65,7 +64,7 @@ export const TimeEntriesHistory = ({ cardTitlesById, timeEntries }: Props) => {
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="inline-flex rounded-lg border bg-background p-0.5">
-            {periodOptions.map((option) => {
+            {timeReportPeriodOptions.map((option) => {
               const isSelected = history.selectedPeriod === option.value;
 
               return (
@@ -112,6 +111,11 @@ export const TimeEntriesHistory = ({ cardTitlesById, timeEntries }: Props) => {
               Reset
             </Button>
           ) : null}
+
+          <ExportTimeReportButton
+            cardTitlesById={cardTitlesById}
+            timeEntries={history.filteredTimeEntries}
+          />
         </div>
       </div>
 

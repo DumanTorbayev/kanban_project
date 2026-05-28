@@ -33,12 +33,16 @@ export type BoardTimeSummary = {
   totalDurationSeconds: number;
 };
 
-export type TimeEntriesHistoryPeriod = "all" | "today" | "week";
+export type TimeReportPeriod = "all" | "today" | "week";
 
-export type TimeEntriesHistoryFilters = {
+export type TimeReportFilters = {
   cardId: string | null;
-  period: TimeEntriesHistoryPeriod;
+  period: TimeReportPeriod;
 };
+
+export type TimeEntriesHistoryPeriod = TimeReportPeriod;
+
+export type TimeEntriesHistoryFilters = TimeReportFilters;
 
 export type TimeAnalyticsCardBreakdown = {
   cardId: string;

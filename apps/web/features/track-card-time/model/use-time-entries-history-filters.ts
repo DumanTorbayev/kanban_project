@@ -1,35 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import {
   filterCompletedTimeEntries,
   getCompletedTimeEntriesDuration,
 } from "@/entities/time-entry/lib/filter-time-entries";
-import {
-  type CompletedTimeEntry,
-  type TimeEntriesHistoryPeriod,
-} from "@/entities/time-entry/model/types";
+import { type CompletedTimeEntry } from "@/entities/time-entry/model/types";
 
-type PeriodOption = {
-  label: string;
-  value: TimeEntriesHistoryPeriod;
-};
-
-export const periodOptions: PeriodOption[] = [
-  {
-    label: "All",
-    value: "all",
-  },
-  {
-    label: "Today",
-    value: "today",
-  },
-  {
-    label: "This week",
-    value: "week",
-  },
-];
+import { useTimeReportFiltersStore } from "./use-time-report-filters-store";
 
 interface Props {
   cardTitlesById: Record<string, string>;
@@ -40,9 +19,19 @@ export const useTimeEntriesHistoryFilters = ({
   cardTitlesById,
   timeEntries,
 }: Props) => {
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
-  const [selectedPeriod, setSelectedPeriod] =
-    useState<TimeEntriesHistoryPeriod>("all");
+  const resetFilters = useTimeReportFiltersStore((state) => state.resetFilters);
+  const selectedCardId = useTimeReportFiltersStore(
+    (state) => state.selectedCardId,
+  );
+  const selectedPeriod = useTimeReportFiltersStore(
+    (state) => state.selectedPeriod,
+  );
+  const setSelectedCardId = useTimeReportFiltersStore(
+    (state) => state.setSelectedCardId,
+  );
+  const setSelectedPeriod = useTimeReportFiltersStore(
+    (state) => state.setSelectedPeriod,
+  );
   const cardOptions = useMemo(
     () =>
       [...new Set(timeEntries.map((timeEntry) => timeEntry.card_id))]
@@ -68,10 +57,6 @@ export const useTimeEntriesHistoryFilters = ({
     [filteredTimeEntries],
   );
   const hasActiveFilters = Boolean(selectedCardId) || selectedPeriod !== "all";
-  const resetFilters = () => {
-    setSelectedCardId(null);
-    setSelectedPeriod("all");
-  };
 
   return {
     cardOptions,
