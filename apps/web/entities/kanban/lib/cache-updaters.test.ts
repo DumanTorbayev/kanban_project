@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   addCardToBoard,
   addTrackedSecondsToCard,
+  adjustTrackedSecondsForCard,
   addColumnToBoard,
   removeCardFromBoard,
   removeColumnFromBoard,
@@ -278,6 +279,22 @@ describe("kanban cache updaters", () => {
     const result = addTrackedSecondsToCard([todo], "card-1", 45);
 
     expect(result[0]?.cards[0]?.tracked_seconds).toBe(75);
+  });
+
+  it("adjusts tracked seconds and clamps at zero", () => {
+    const todo = createColumn({
+      cards: [
+        createCard({
+          id: "card-1",
+          tracked_seconds: 30,
+        }),
+      ],
+      id: "todo",
+    });
+
+    const result = adjustTrackedSecondsForCard([todo], "card-1", -45);
+
+    expect(result[0]?.cards[0]?.tracked_seconds).toBe(0);
   });
 
   it("removes a card from every column", () => {

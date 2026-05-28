@@ -161,13 +161,30 @@ export function addTrackedSecondsToCard(
     return columns;
   }
 
+  return adjustTrackedSecondsForCard(columns, cardId, trackedSeconds);
+}
+
+export function adjustTrackedSecondsForCard(
+  columns: KanbanColumnWithCards[],
+  cardId: string,
+  deltaSeconds: number,
+) {
+  if (!Number.isFinite(deltaSeconds) || deltaSeconds === 0) {
+    return columns;
+  }
+
+  const normalizedDeltaSeconds = Math.floor(deltaSeconds);
+
   return columns.map((column) => ({
     ...column,
     cards: column.cards.map((card) =>
       card.id === cardId
         ? {
             ...card,
-            tracked_seconds: card.tracked_seconds + Math.floor(trackedSeconds),
+            tracked_seconds: Math.max(
+              0,
+              card.tracked_seconds + normalizedDeltaSeconds,
+            ),
           }
         : card,
     ),
