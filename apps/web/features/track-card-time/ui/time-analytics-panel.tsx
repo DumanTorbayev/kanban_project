@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 
 import { formatTimerDuration } from "@/entities/time-entry/lib/format-timer-duration";
 import { type CompletedTimeEntry } from "@/entities/time-entry/model/types";
-import { periodOptions } from "@/features/track-card-time/model/use-time-entries-history-filters";
+import { timeReportPeriodOptions } from "@/features/track-card-time/model/time-report-period-options";
 import { useTimeAnalytics } from "@/features/track-card-time/model/use-time-analytics";
 import { Button } from "@workspace/ui/components/button";
 
@@ -44,9 +44,13 @@ const TimeCardBreakdownChart = dynamic(
 );
 
 export const TimeAnalyticsPanel = ({ cardTitlesById, timeEntries }: Props) => {
-  const { analytics, selectedPeriod, setSelectedPeriod } = useTimeAnalytics({
-    timeEntries,
-  });
+  const { analytics, selectedCardId, selectedPeriod, setSelectedPeriod } =
+    useTimeAnalytics({
+      timeEntries,
+    });
+  const selectedCardTitle = selectedCardId
+    ? (cardTitlesById[selectedCardId] ?? "Untitled card")
+    : null;
   const visibleDailyTrend = analytics.dailyTrend.slice(-MAX_VISIBLE_DAYS);
   const visibleCardBreakdown = analytics.cardBreakdown.slice(
     0,
@@ -63,13 +67,15 @@ export const TimeAnalyticsPanel = ({ cardTitlesById, timeEntries }: Props) => {
           <div className="min-w-0">
             <h2 className="text-sm font-medium">Time analytics</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Workload distribution and recent trend
+              {selectedCardTitle
+                ? `Filtered by ${selectedCardTitle}`
+                : "Workload distribution and recent trend"}
             </p>
           </div>
         </div>
 
         <div className="inline-flex rounded-lg border bg-background p-0.5">
-          {periodOptions.map((option) => {
+          {timeReportPeriodOptions.map((option) => {
             const isSelected = selectedPeriod === option.value;
 
             return (
