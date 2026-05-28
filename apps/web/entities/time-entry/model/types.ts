@@ -39,3 +39,25 @@ export type TimeEntriesHistoryFilters = {
   cardId: string | null;
   period: TimeEntriesHistoryPeriod;
 };
+
+export type TimeAnalyticsCardBreakdown = {
+  cardId: string;
+  completedEntryCount: number;
+  percentage: number;
+  totalDurationSeconds: number;
+};
+
+export type TimeAnalyticsDailyPoint = {
+  completedEntryCount: number;
+  date: string;
+  totalDurationSeconds: number;
+};
+
+export type TimeAnalytics = {
+  activeCardCount: number;
+  averageDurationSeconds: number;
+  cardBreakdown: TimeAnalyticsCardBreakdown[];
+  completedEntryCount: number;
+  dailyTrend: TimeAnalyticsDailyPoint[];
+  totalDurationSeconds: number;
+};

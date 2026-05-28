@@ -14,6 +14,7 @@ import {
 import { useCardTimer } from "@/features/track-card-time/model/use-card-timer";
 import { useTimeEntriesHistory } from "@/features/track-card-time/model/use-time-entries-history";
 import { useTimeEntriesSummary } from "@/features/track-card-time/model/use-time-entries-summary";
+import { TimeAnalyticsPanel } from "@/features/track-card-time/ui/time-analytics-panel";
 import { TimeEntriesHistory } from "@/features/track-card-time/ui/time-entries-history";
 import { TimeEntriesSummary } from "@/features/track-card-time/ui/time-entries-summary";
 
@@ -97,6 +98,11 @@ export const KanbanDndBoard = ({
           activeTimeEntry={timer.activeTimeEntry}
           cardTitlesById={cardTitlesById}
           summary={timeEntriesSummary.summary}
+        />
+
+        <TimeAnalyticsPanel
+          cardTitlesById={cardTitlesById}
+          timeEntries={timeEntriesHistory.timeEntries}
         />
 
         <TimeEntriesHistory
