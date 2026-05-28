@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { getKanbanBoard } from "@/entities/kanban/api/get-kanban-board";
 import { kanbanBoardQueryKey } from "@/entities/kanban/model/query-keys";
@@ -11,6 +11,14 @@ import {
   type KanbanColumnWithCards,
 } from "@/entities/kanban/model/types";
 import { createClient } from "@/lib/supabase/client";
+
+import { useReconnectSignals } from "./use-reconnect-signals";
+
+/**
+ * Coalesces bursts of postgres_changes events (and reconnect signals) into a
+ * single board refetch instead of refetching once per row change.
+ */
+const RESYNC_DEBOUNCE_MS = 150;
 
 export type KanbanRealtimeStatus =
   | "connecting"
@@ -28,54 +36,51 @@ export const useKanbanBoardRealtime = ({ boardId }: Props) => {
   const queryKey = useMemo(() => kanbanBoardQueryKey(boardId), [boardId]);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<KanbanRealtimeStatus>("connecting");
+  const [supabase] = useState(() => createClient());
+  const resyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const syncBoard = useCallback(async () => {
+    const result = await getKanbanBoard(supabase, boardId);
+
+    if (result.error) {
+      setError(result.error.message);
+      return;
+    }
+
+    queryClient.setQueryData<KanbanColumnWithCards[]>(
+      queryKey,
+      result.data ?? [],
+    );
+    setError(null);
+  }, [boardId, queryClient, queryKey, supabase]);
+
+  const scheduleSync = useCallback(() => {
+    if (resyncTimerRef.current) {
+      clearTimeout(resyncTimerRef.current);
+    }
+
+    resyncTimerRef.current = setTimeout(() => {
+      resyncTimerRef.current = null;
+      void syncBoard();
+    }, RESYNC_DEBOUNCE_MS);
+  }, [syncBoard]);
+
+  const handleOffline = useCallback(() => {
+    setStatus("disconnected");
+  }, []);
+  const handleOnline = useCallback(() => {
+    setStatus("reconnecting");
+    scheduleSync();
+  }, [scheduleSync]);
+
+  useReconnectSignals({
+    onOffline: handleOffline,
+    onOnline: handleOnline,
+    onVisible: scheduleSync,
+  });
 
   useEffect(() => {
     let isActive = true;
-    const supabase = createClient();
-    const syncBoard = async () => {
-      const result = await getKanbanBoard(supabase, boardId);
-
-      if (!isActive) {
-        return;
-      }
-
-      if (result.error) {
-        setError(result.error.message);
-        return;
-      }
-
-      queryClient.setQueryData<KanbanColumnWithCards[]>(
-        queryKey,
-        result.data ?? [],
-      );
-      setError(null);
-    };
-    const syncBoardSnapshot = () => {
-      void syncBoard();
-    };
-    const handleOnline = () => {
-      setStatus("reconnecting");
-      syncBoardSnapshot();
-    };
-    const handleOffline = () => {
-      setStatus("disconnected");
-    };
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        syncBoardSnapshot();
-      }
-    };
-
-    queueMicrotask(() => {
-      if (isActive && !navigator.onLine) {
-        setStatus("disconnected");
-      }
-    });
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
     const channel = supabase
       .channel("kanban-board:" + boardId)
       .on<KanbanColumn>(
@@ -86,7 +91,7 @@ export const useKanbanBoardRealtime = ({ boardId }: Props) => {
           schema: "public",
           table: "board_columns",
         },
-        syncBoardSnapshot,
+        scheduleSync,
       )
       .on<KanbanCard>(
         "postgres_changes",
@@ -96,7 +101,7 @@ export const useKanbanBoardRealtime = ({ boardId }: Props) => {
           schema: "public",
           table: "cards",
         },
-        syncBoardSnapshot,
+        scheduleSync,
       )
       .subscribe((nextStatus, subscribeError) => {
         if (!isActive) {
@@ -106,7 +111,7 @@ export const useKanbanBoardRealtime = ({ boardId }: Props) => {
         if (nextStatus === "SUBSCRIBED") {
           setStatus("connected");
           setError(null);
-          syncBoardSnapshot();
+          scheduleSync();
           return;
         }
 
@@ -134,12 +139,15 @@ export const useKanbanBoardRealtime = ({ boardId }: Props) => {
 
     return () => {
       isActive = false;
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+
+      if (resyncTimerRef.current) {
+        clearTimeout(resyncTimerRef.current);
+        resyncTimerRef.current = null;
+      }
+
       void supabase.removeChannel(channel);
     };
-  }, [boardId, queryClient, queryKey]);
+  }, [boardId, scheduleSync, supabase]);
 
   return {
     error,

@@ -2,26 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 
+import { TIME_ENTRY_COLUMNS } from "@/entities/time-entry/model/columns";
 import { toCompletedTimeEntry } from "@/entities/time-entry/lib/filter-time-entries";
 import {
   normalizeTimeEntry,
   type TimeEntryRow,
 } from "@/entities/time-entry/lib/normalize-time-entry";
 import { requireUser } from "@/shared/lib/auth/require-user";
+import { assertRequired } from "@/shared/lib/validation/assert";
 
 export type DeleteTimeEntryInput = {
   boardId: string;
   timeEntryId: string;
 };
-
-const timeEntrySelect =
-  "id, board_id, card_id, user_id, started_at, stopped_at, duration_seconds, created_at, updated_at";
-
-function assertRequired(value: string, message: string) {
-  if (!value.trim()) {
-    throw new Error(message);
-  }
-}
 
 export async function deleteTimeEntry(input: DeleteTimeEntryInput) {
   assertRequired(input.boardId, "Board id is required.");
@@ -36,7 +29,7 @@ export async function deleteTimeEntry(input: DeleteTimeEntryInput) {
     .eq("id", input.timeEntryId)
     .eq("board_id", input.boardId)
     .eq("user_id", user.id)
-    .select(timeEntrySelect)
+    .select(TIME_ENTRY_COLUMNS)
     .maybeSingle();
 
   if (error) {

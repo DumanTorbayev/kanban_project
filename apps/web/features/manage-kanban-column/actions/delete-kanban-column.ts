@@ -3,17 +3,12 @@
 import { revalidatePath } from "next/cache";
 
 import { requireUser } from "@/shared/lib/auth/require-user";
+import { assertRequired } from "@/shared/lib/validation/assert";
 
 export type DeleteKanbanColumnInput = {
   boardId: string;
   columnId: string;
 };
-
-function assertRequired(value: string, message: string) {
-  if (!value.trim()) {
-    throw new Error(message);
-  }
-}
 
 export async function deleteKanbanColumn(input: DeleteKanbanColumnInput) {
   assertRequired(input.boardId, "Board id is required.");
