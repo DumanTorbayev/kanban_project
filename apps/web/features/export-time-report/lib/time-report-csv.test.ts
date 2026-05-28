@@ -32,8 +32,9 @@ describe("time report CSV", () => {
 
     expect(result).toBe(
       [
-        "Card,Card ID,Started At UTC,Stopped At UTC,Duration Seconds,Duration,Entry ID",
-        "Implement reporting,card-1,2026-05-29T11:58:30.000Z,2026-05-29T12:00:00.000Z,90,01:30,entry-1",
+        "sep=;",
+        "Card;Started At (UTC);Stopped At (UTC);Duration;Duration Seconds",
+        "Implement reporting;2026-05-29 11:58:30;2026-05-29 12:00:00;01:30;90",
       ].join("\n"),
     );
   });
@@ -41,12 +42,14 @@ describe("time report CSV", () => {
   it("escapes titles that contain CSV control characters", () => {
     const result = buildTimeReportCsv({
       cardTitlesById: {
-        "card-1": 'Review "CSV", export',
+        "card-1": 'Review "CSV"; export',
       },
       timeEntries: [createTimeEntry()],
     });
 
-    expect(result.split("\n")[1]).toContain('"Review ""CSV"", export",card-1');
+    expect(result.split("\n")[2]).toContain(
+      '"Review ""CSV""; export";2026-05-29',
+    );
   });
 
   it("falls back to untitled card when a title is missing", () => {
@@ -55,9 +58,7 @@ describe("time report CSV", () => {
       timeEntries: [createTimeEntry()],
     });
 
-    expect(result.split("\n")[1]?.startsWith("Untitled card,card-1")).toBe(
-      true,
-    );
+    expect(result.split("\n")[2]?.startsWith("Untitled card;2026")).toBe(true);
   });
 
   it("creates a date-based report file name", () => {
