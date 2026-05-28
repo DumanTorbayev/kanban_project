@@ -9,6 +9,8 @@ import {
   getTimeReportFileName,
 } from "../lib/time-report-csv";
 
+const UTF8_BOM = "\uFEFF";
+
 interface Props {
   cardTitlesById: Record<string, string>;
   timeEntries: CompletedTimeEntry[];
@@ -28,7 +30,7 @@ export const useTimeReportCsvExport = ({
       cardTitlesById,
       timeEntries,
     });
-    const blob = new Blob([csv], {
+    const blob = new Blob([UTF8_BOM, csv], {
       type: "text/csv;charset=utf-8",
     });
     const url = window.URL.createObjectURL(blob);

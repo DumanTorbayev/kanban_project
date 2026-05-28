@@ -8,37 +8,51 @@ type BuildTimeReportCsvInput = {
   timeEntries: CompletedTimeEntry[];
 };
 
+const delimiter = ";";
+
 const headers = [
   "Card",
-  "Card ID",
-  "Started At UTC",
-  "Stopped At UTC",
-  "Duration Seconds",
+  "Started At (UTC)",
+  "Stopped At (UTC)",
   "Duration",
-  "Entry ID",
+  "Duration Seconds",
 ];
+
+const padDatePart = (value: number) => value.toString().padStart(2, "0");
 
 const escapeCsvCell = (cell: CsvCell) => {
   const value = String(cell ?? "");
 
-  if (!/[",\n\r]/.test(value)) {
+  if (!/[";\n\r]/.test(value)) {
     return value;
   }
 
   return `"${value.replaceAll('"', '""')}"`;
 };
 
-const toUtcIsoString = (value: string) => {
+const formatUtcDateTime = (value: string) => {
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
     return value;
   }
 
-  return date.toISOString();
+  return [
+    date.getUTCFullYear(),
+    "-",
+    padDatePart(date.getUTCMonth() + 1),
+    "-",
+    padDatePart(date.getUTCDate()),
+    " ",
+    padDatePart(date.getUTCHours()),
+    ":",
+    padDatePart(date.getUTCMinutes()),
+    ":",
+    padDatePart(date.getUTCSeconds()),
+  ].join("");
 };
 
-const toCsvRow = (cells: CsvCell[]) => cells.map(escapeCsvCell).join(",");
+const toCsvRow = (cells: CsvCell[]) => cells.map(escapeCsvCell).join(delimiter);
 
 export const buildTimeReportCsv = ({
   cardTitlesById,
@@ -47,16 +61,14 @@ export const buildTimeReportCsv = ({
   const rows = timeEntries.map((timeEntry) =>
     toCsvRow([
       cardTitlesById[timeEntry.card_id] ?? "Untitled card",
-      timeEntry.card_id,
-      toUtcIsoString(timeEntry.started_at),
-      toUtcIsoString(timeEntry.stopped_at),
-      timeEntry.duration_seconds,
+      formatUtcDateTime(timeEntry.started_at),
+      formatUtcDateTime(timeEntry.stopped_at),
       formatTimerDuration(timeEntry.duration_seconds),
-      timeEntry.id,
+      timeEntry.duration_seconds,
     ]),
   );
 
-  return [toCsvRow(headers), ...rows].join("\n");
+  return [`sep=${delimiter}`, toCsvRow(headers), ...rows].join("\n");
 };
 
 export const getTimeReportFileName = (date = new Date()) => {
