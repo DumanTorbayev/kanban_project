@@ -4,21 +4,21 @@ import { revalidatePath } from "next/cache";
 
 import { type BoardDetails } from "@/entities/board/model/types";
 import { requireUser } from "@/shared/lib/auth/require-user";
+import {
+  assertMaxLength,
+  assertRequired,
+  TITLE_MAX_LENGTH,
+} from "@/shared/lib/validation/assert";
 
 export type RenameBoardInput = {
   boardId: string;
   title: string;
 };
 
-function assertRequired(value: string, message: string) {
-  if (!value.trim()) {
-    throw new Error(message);
-  }
-}
-
 export async function renameBoard(input: RenameBoardInput) {
   assertRequired(input.boardId, "Board id is required.");
   assertRequired(input.title, "Board title is required.");
+  assertMaxLength(input.title, TITLE_MAX_LENGTH, "Board title is too long.");
 
   const { supabase } = await requireUser({
     redirectTo: "/boards/" + input.boardId,

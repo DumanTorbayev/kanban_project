@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { TIME_ENTRY_COLUMNS } from "@/entities/time-entry/model/columns";
 import {
   normalizeTimeEntry,
   type TimeEntryRow,
@@ -11,6 +12,7 @@ import {
   type TimeEntry,
 } from "@/entities/time-entry/model/types";
 import { requireUser } from "@/shared/lib/auth/require-user";
+import { assertRequired } from "@/shared/lib/validation/assert";
 
 export type StartCardTimerInput = {
   boardId: string;
@@ -20,15 +22,6 @@ export type StartCardTimerInput = {
 export type StartCardTimerResult = {
   activeTimeEntry: ActiveTimeEntry;
   stoppedTimeEntry: TimeEntry | null;
-};
-
-const timeEntrySelect =
-  "id, board_id, card_id, user_id, started_at, stopped_at, duration_seconds, created_at, updated_at";
-
-const assertRequired = (value: string, message: string) => {
-  if (!value.trim()) {
-    throw new Error(message);
-  }
 };
 
 export async function startCardTimer(
@@ -42,7 +35,7 @@ export async function startCardTimer(
   });
   const { data: activeEntry, error: activeEntryError } = await supabase
     .from("time_entries")
-    .select(timeEntrySelect)
+    .select(TIME_ENTRY_COLUMNS)
     .eq("user_id", user.id)
     .is("stopped_at", null)
     .limit(1)
@@ -77,7 +70,7 @@ export async function startCardTimer(
       .eq("id", normalizedActiveEntry.id)
       .eq("user_id", user.id)
       .is("stopped_at", null)
-      .select(timeEntrySelect)
+      .select(TIME_ENTRY_COLUMNS)
       .single();
 
     if (stopError) {
@@ -95,7 +88,7 @@ export async function startCardTimer(
       card_id: input.cardId,
       user_id: user.id,
     })
-    .select(timeEntrySelect)
+    .select(TIME_ENTRY_COLUMNS)
     .single();
 
   if (error) {

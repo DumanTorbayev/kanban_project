@@ -2,12 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 
+import { TIME_ENTRY_COLUMNS } from "@/entities/time-entry/model/columns";
 import {
   normalizeTimeEntry,
   type TimeEntryRow,
 } from "@/entities/time-entry/lib/normalize-time-entry";
 import { toCompletedTimeEntry } from "@/entities/time-entry/lib/filter-time-entries";
 import { requireUser } from "@/shared/lib/auth/require-user";
+import { assertRequired } from "@/shared/lib/validation/assert";
 
 export type UpdateTimeEntryInput = {
   boardId: string;
@@ -15,15 +17,6 @@ export type UpdateTimeEntryInput = {
   startedAt: string;
   stoppedAt: string;
 };
-
-const timeEntrySelect =
-  "id, board_id, card_id, user_id, started_at, stopped_at, duration_seconds, created_at, updated_at";
-
-function assertRequired(value: string, message: string) {
-  if (!value.trim()) {
-    throw new Error(message);
-  }
-}
 
 function parseDate(value: string, message: string) {
   const date = new Date(value);
@@ -60,7 +53,7 @@ export async function updateTimeEntry(input: UpdateTimeEntryInput) {
     .eq("id", input.timeEntryId)
     .eq("board_id", input.boardId)
     .eq("user_id", user.id)
-    .select(timeEntrySelect)
+    .select(TIME_ENTRY_COLUMNS)
     .maybeSingle();
 
   if (error) {

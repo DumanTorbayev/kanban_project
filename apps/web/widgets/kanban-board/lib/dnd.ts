@@ -1,9 +1,8 @@
+import { getPositionBetween } from "@/entities/kanban/lib/position";
 import {
   type KanbanCard,
   type KanbanColumnWithCards,
 } from "@/entities/kanban/model/types";
-
-const POSITION_STEP = 1024;
 
 type CardLocation = {
   card: KanbanCard;
@@ -124,20 +123,8 @@ export function moveCardInColumns(
 }
 
 function getPositionAtIndex(cards: KanbanCard[], index: number) {
-  const previousPosition = cards[index - 1]?.position;
-  const nextPosition = cards[index + 1]?.position;
-
-  if (previousPosition !== undefined && nextPosition !== undefined) {
-    return (previousPosition + nextPosition) / 2;
-  }
-
-  if (previousPosition !== undefined) {
-    return previousPosition + POSITION_STEP;
-  }
-
-  if (nextPosition !== undefined) {
-    return nextPosition / 2;
-  }
-
-  return POSITION_STEP;
+  return getPositionBetween(
+    cards[index - 1]?.position,
+    cards[index + 1]?.position,
+  );
 }

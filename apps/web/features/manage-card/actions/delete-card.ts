@@ -3,17 +3,12 @@
 import { revalidatePath } from "next/cache";
 
 import { requireUser } from "@/shared/lib/auth/require-user";
+import { assertRequired } from "@/shared/lib/validation/assert";
 
 export type DeleteCardInput = {
   boardId: string;
   cardId: string;
 };
-
-function assertRequired(value: string, message: string) {
-  if (!value.trim()) {
-    throw new Error(message);
-  }
-}
 
 export async function deleteCard(input: DeleteCardInput) {
   assertRequired(input.boardId, "Board id is required.");
