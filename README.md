@@ -185,4 +185,8 @@ Performance goals and verification steps are tracked in [`docs/performance.md`](
 - Supabase is used as the backend platform for Auth, PostgreSQL, RLS, and Realtime.
 - Route protection is handled through the Next.js proxy and Supabase server-side session refresh.
 - RLS is the primary authorization boundary for user-owned and member-accessible data.
+- Kanban could have been built as an SPA, but Next.js was chosen to demonstrate full-stack React architecture, protected server boundaries, auth cookies, deployment model, and App Router trade-offs.
+- TanStack Query owns server/cache state, optimistic mutations, invalidation, and realtime-driven cache updates.
+- Zustand is reserved for client-only product state that does not belong to the backend, such as board UI preferences, open panels, filters, and local view settings.
+- Architecture Decision Records are kept in [`docs/adr`](docs/adr) to document why major technical choices were made.
 - UI text is written in English to keep the product consistent for portfolio and deployment use.
