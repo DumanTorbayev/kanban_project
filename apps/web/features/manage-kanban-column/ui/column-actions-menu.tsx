@@ -42,7 +42,7 @@ export const ColumnActionsMenu = ({ column, disabled }: Props) => {
             variant: "destructive",
           },
         ]}
-        label="Column actions"
+        label={"Column actions for " + column.title}
       />
       {renameOpen ? (
         <RenameColumnDialog

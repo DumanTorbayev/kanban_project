@@ -29,6 +29,7 @@ export const KanbanColumnPanel = ({
 
   return (
     <section
+      aria-label={column.title + " column"}
       className="flex h-[calc(100vh-18rem)] max-h-[44rem] min-h-112 min-w-72 flex-1 flex-col rounded-lg border bg-muted/40 p-3 shadow-sm"
       ref={setNodeRef}
     >
@@ -43,6 +44,7 @@ export const KanbanColumnPanel = ({
       </header>
 
       <Button
+        aria-label={"Add card to " + column.title}
         className="mb-3 w-full"
         disabled={isMutating}
         onClick={() => onCreateCard(column.id)}
