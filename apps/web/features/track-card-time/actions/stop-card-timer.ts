@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 
-import { TIME_ENTRY_COLUMNS } from "@/entities/time-entry/model/columns";
 import {
   normalizeTimeEntry,
   type TimeEntryRow,
@@ -21,20 +20,15 @@ export async function stopCardTimer(input: StopCardTimerInput) {
   assertRequired(input.cardId, "Card id is required.");
   assertRequired(input.timeEntryId, "Time entry id is required.");
 
-  const { supabase, user } = await requireUser({
+  const { supabase } = await requireUser({
     redirectTo: "/boards/" + input.boardId,
   });
   const { data, error } = await supabase
-    .from("time_entries")
-    .update({
-      stopped_at: new Date().toISOString(),
+    .rpc("stop_card_timer", {
+      target_board_id: input.boardId,
+      target_card_id: input.cardId,
+      target_time_entry_id: input.timeEntryId,
     })
-    .eq("id", input.timeEntryId)
-    .eq("board_id", input.boardId)
-    .eq("card_id", input.cardId)
-    .eq("user_id", user.id)
-    .is("stopped_at", null)
-    .select(TIME_ENTRY_COLUMNS)
     .maybeSingle();
 
   if (error) {
