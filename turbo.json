@@ -1,5 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["CI", "PLAYWRIGHT_BASE_URL"],
   "ui": "tui",
   "tasks": {
     "build": {
@@ -26,6 +27,9 @@
     },
     "test": {
       "dependsOn": ["^test"]
+    },
+    "test:e2e": {
+      "cache": false
     },
     "test:coverage": {
       "dependsOn": ["^test:coverage"],
