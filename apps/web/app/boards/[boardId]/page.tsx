@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { getBoardMembers } from "@/entities/board-member/api/get-board-members";
 import { getBoard } from "@/entities/board/api/get-board";
 import { getKanbanBoard } from "@/entities/kanban/api/get-kanban-board";
 import { getActiveTimeEntry } from "@/entities/time-entry/api/get-active-time-entry";
@@ -29,12 +30,14 @@ const BoardPage = async ({ params, searchParams }: Props) => {
     boardResult,
     kanbanResult,
     activeTimeEntryResult,
+    boardMembersResult,
     timeSummaryResult,
     timeEntriesResult,
   ] = await Promise.all([
     getBoard(supabase, boardId),
     getKanbanBoard(supabase, boardId),
     getActiveTimeEntry(supabase, boardId, user.id),
+    getBoardMembers(supabase, boardId),
     getBoardTimeSummary(supabase, boardId),
     getBoardTimeEntries(supabase, boardId),
   ]);
@@ -46,12 +49,20 @@ const BoardPage = async ({ params, searchParams }: Props) => {
   return (
     <main className="min-h-svh bg-muted/30 p-6">
       <AppContainer>
-        <BoardHeader board={boardResult.data} />
+        <BoardHeader
+          board={boardResult.data}
+          currentUserId={user.id}
+          members={boardMembersResult.data ?? []}
+        />
         <KanbanBoard
           activeTimeEntry={activeTimeEntryResult.data}
           boardId={boardResult.data.id}
           columns={kanbanResult.data ?? []}
-          error={queryParams?.error ?? kanbanResult.error?.message}
+          error={
+            queryParams?.error ??
+            kanbanResult.error?.message ??
+            boardMembersResult.error?.message
+          }
           timeEntries={timeEntriesResult.data}
           timeSummary={timeSummaryResult.data}
           timerError={

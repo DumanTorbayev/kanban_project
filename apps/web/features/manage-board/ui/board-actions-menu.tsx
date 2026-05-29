@@ -1,9 +1,10 @@
 "use client";
 
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Users } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
+import { type BoardMember } from "@/entities/board-member/model/types";
 import { type BoardDetails } from "@/entities/board/model/types";
 import { ActionMenu } from "@workspace/ui/components/action-menu";
 
@@ -13,13 +14,21 @@ const RenameBoardDialog = dynamic(() =>
 const DeleteBoardDialog = dynamic(() =>
   import("./delete-board-dialog").then((module) => module.DeleteBoardDialog),
 );
+const BoardMembersDialog = dynamic(() =>
+  import("@/features/manage-board-members/ui/board-members-dialog").then(
+    (module) => module.BoardMembersDialog,
+  ),
+);
 
 interface Props {
   board: BoardDetails;
+  currentUserId: string;
+  members: BoardMember[];
 }
 
-export const BoardActionsMenu = ({ board }: Props) => {
+export const BoardActionsMenu = ({ board, currentUserId, members }: Props) => {
   const [renameOpen, setRenameOpen] = useState(false);
+  const [membersOpen, setMembersOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   return (
@@ -30,6 +39,11 @@ export const BoardActionsMenu = ({ board }: Props) => {
             icon: <Pencil aria-hidden="true" />,
             label: "Rename board",
             onSelect: () => setRenameOpen(true),
+          },
+          {
+            icon: <Users aria-hidden="true" />,
+            label: "Manage members",
+            onSelect: () => setMembersOpen(true),
           },
           {
             icon: <Trash2 aria-hidden="true" />,
@@ -46,6 +60,15 @@ export const BoardActionsMenu = ({ board }: Props) => {
           board={board}
           onOpenChange={setRenameOpen}
           open={renameOpen}
+        />
+      ) : null}
+      {membersOpen ? (
+        <BoardMembersDialog
+          boardId={board.id}
+          currentUserId={currentUserId}
+          initialMembers={members}
+          onOpenChange={setMembersOpen}
+          open={membersOpen}
         />
       ) : null}
       {deleteOpen ? (
