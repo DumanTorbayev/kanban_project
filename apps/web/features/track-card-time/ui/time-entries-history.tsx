@@ -5,7 +5,7 @@ import { type ChangeEvent } from "react";
 
 import { formatTimerDuration } from "@/entities/time-entry/lib/format-timer-duration";
 import { type CompletedTimeEntry } from "@/entities/time-entry/model/types";
-import { ExportTimeReportButton } from "@/features/export-time-report/ui/export-time-report-button";
+import { ExportTimeReportActions } from "@/features/export-time-report/ui/export-time-report-actions";
 import { TimeEntryActionsMenu } from "@/features/manage-time-entry/ui/time-entry-actions-menu";
 import { timeReportPeriodOptions } from "@/features/track-card-time/model/time-report-period-options";
 import { useTimeEntriesHistoryFilters } from "@/features/track-card-time/model/use-time-entries-history-filters";
@@ -112,8 +112,10 @@ export const TimeEntriesHistory = ({ cardTitlesById, timeEntries }: Props) => {
             </Button>
           ) : null}
 
-          <ExportTimeReportButton
+          <ExportTimeReportActions
             cardTitlesById={cardTitlesById}
+            selectedCardId={history.selectedCardId}
+            selectedPeriod={history.selectedPeriod}
             timeEntries={history.filteredTimeEntries}
           />
         </div>
