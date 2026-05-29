@@ -7,7 +7,6 @@ import {
   normalizeKanbanCard,
   type KanbanCardRow,
 } from "@/entities/kanban/lib/normalize-kanban";
-import { getNextPosition } from "@/entities/kanban/lib/position";
 import { requireUser } from "@/shared/lib/auth/require-user";
 import {
   assertMaxLength,
@@ -34,33 +33,15 @@ export async function createCard(input: CreateCardInput) {
     "Card description is too long.",
   );
 
-  const { supabase, user } = await requireUser({
+  const { supabase } = await requireUser({
     redirectTo: "/boards/" + input.boardId,
   });
-  const { data: lastCard, error: positionError } = await supabase
-    .from("cards")
-    .select("position")
-    .eq("board_id", input.boardId)
-    .eq("column_id", input.columnId)
-    .order("position", {
-      ascending: false,
-    })
-    .limit(1)
-    .maybeSingle();
-
-  if (positionError) {
-    throw new Error(positionError.message);
-  }
-
   const { data, error } = await supabase
-    .from("cards")
-    .insert({
-      board_id: input.boardId,
-      column_id: input.columnId,
-      title: input.title.trim(),
-      description: input.description?.trim() || null,
-      position: getNextPosition(lastCard?.position),
-      created_by: user.id,
+    .rpc("create_kanban_card", {
+      card_description: input.description,
+      card_title: input.title,
+      target_board_id: input.boardId,
+      target_column_id: input.columnId,
     })
     .select(KANBAN_CARD_COLUMNS)
     .single();
