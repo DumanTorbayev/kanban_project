@@ -73,7 +73,7 @@ export const useCardTimer = ({
     queryKey: activeTimeEntryQuery,
   });
   const syncCompletedTimeEntry = (timeEntry: TimeEntry | null) => {
-    if (!timeEntry) {
+    if (!timeEntry || timeEntry.board_id !== boardId) {
       return;
     }
 

@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 
-import { TIME_ENTRY_COLUMNS } from "@/entities/time-entry/model/columns";
 import {
   normalizeTimeEntry,
   type TimeEntryRow,
@@ -24,83 +23,57 @@ export type StartCardTimerResult = {
   stoppedTimeEntry: TimeEntry | null;
 };
 
+type StartCardTimerRpcRow = TimeEntryRow & {
+  entry_role: "active" | "stopped";
+};
+
+const normalizeRpcTimeEntry = (row: StartCardTimerRpcRow) =>
+  normalizeTimeEntry({
+    id: row.id,
+    board_id: row.board_id,
+    card_id: row.card_id,
+    user_id: row.user_id,
+    started_at: row.started_at,
+    stopped_at: row.stopped_at,
+    duration_seconds: row.duration_seconds,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  });
+
 export async function startCardTimer(
   input: StartCardTimerInput,
 ): Promise<StartCardTimerResult> {
   assertRequired(input.boardId, "Board id is required.");
   assertRequired(input.cardId, "Card id is required.");
 
-  const { supabase, user } = await requireUser({
+  const { supabase } = await requireUser({
     redirectTo: "/boards/" + input.boardId,
   });
-  const { data: activeEntry, error: activeEntryError } = await supabase
-    .from("time_entries")
-    .select(TIME_ENTRY_COLUMNS)
-    .eq("user_id", user.id)
-    .is("stopped_at", null)
-    .limit(1)
-    .maybeSingle();
-
-  if (activeEntryError) {
-    throw new Error(activeEntryError.message);
-  }
-
-  let stoppedTimeEntry: TimeEntry | null = null;
-
-  if (activeEntry) {
-    const normalizedActiveEntry = normalizeTimeEntry(
-      activeEntry as TimeEntryRow,
-    ) as ActiveTimeEntry;
-
-    if (
-      normalizedActiveEntry.board_id === input.boardId &&
-      normalizedActiveEntry.card_id === input.cardId
-    ) {
-      return {
-        activeTimeEntry: normalizedActiveEntry,
-        stoppedTimeEntry: null,
-      };
-    }
-
-    const { data: stoppedEntry, error: stopError } = await supabase
-      .from("time_entries")
-      .update({
-        stopped_at: new Date().toISOString(),
-      })
-      .eq("id", normalizedActiveEntry.id)
-      .eq("user_id", user.id)
-      .is("stopped_at", null)
-      .select(TIME_ENTRY_COLUMNS)
-      .single();
-
-    if (stopError) {
-      throw new Error(stopError.message);
-    }
-
-    stoppedTimeEntry = normalizeTimeEntry(stoppedEntry as TimeEntryRow);
-    revalidatePath("/boards/" + stoppedTimeEntry.board_id);
-  }
-
-  const { data, error } = await supabase
-    .from("time_entries")
-    .insert({
-      board_id: input.boardId,
-      card_id: input.cardId,
-      user_id: user.id,
-    })
-    .select(TIME_ENTRY_COLUMNS)
-    .single();
+  const { data, error } = await supabase.rpc("start_card_timer", {
+    target_board_id: input.boardId,
+    target_card_id: input.cardId,
+  });
 
   if (error) {
     throw new Error(error.message);
   }
 
+  const rows = (data ?? []) as StartCardTimerRpcRow[];
+  const activeEntry = rows.find((row) => row.entry_role === "active");
+  const stoppedEntry = rows.find((row) => row.entry_role === "stopped");
+
+  if (!activeEntry) {
+    throw new Error("Active timer was not returned.");
+  }
+
   revalidatePath("/boards/" + input.boardId);
 
+  if (stoppedEntry && stoppedEntry.board_id !== input.boardId) {
+    revalidatePath("/boards/" + stoppedEntry.board_id);
+  }
+
   return {
-    activeTimeEntry: normalizeTimeEntry(
-      data as TimeEntryRow,
-    ) as ActiveTimeEntry,
-    stoppedTimeEntry,
+    activeTimeEntry: normalizeRpcTimeEntry(activeEntry) as ActiveTimeEntry,
+    stoppedTimeEntry: stoppedEntry ? normalizeRpcTimeEntry(stoppedEntry) : null,
   };
 }
