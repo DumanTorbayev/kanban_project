@@ -85,8 +85,10 @@ export const useKanbanDnd = ({
       boardId,
       cardId: nextState.cardId,
       columnId: nextState.columnId,
+      nextCardId: nextState.nextCardId,
       nextColumns: nextState.columns,
       position: nextState.position,
+      previousCardId: nextState.previousCardId,
     });
   };
 
