@@ -1,6 +1,11 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["CI", "PLAYWRIGHT_BASE_URL"],
+  "globalEnv": [
+    "CI",
+    "PLAYWRIGHT_BASE_URL",
+    "PLAYWRIGHT_TEST_EMAIL",
+    "PLAYWRIGHT_TEST_PASSWORD"
+  ],
   "ui": "tui",
   "tasks": {
     "build": {

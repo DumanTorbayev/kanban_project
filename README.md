@@ -71,6 +71,15 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-or-anon-key
 ```
 
+Optional variables for authenticated Playwright tests:
+
+```env
+PLAYWRIGHT_TEST_EMAIL=e2e-user@example.com
+PLAYWRIGHT_TEST_PASSWORD=change-me
+```
+
+Create this account in Supabase Auth before running authenticated E2E scenarios. Without these variables, authenticated tests are skipped and anonymous routing tests still run.
+
 Run the development server:
 
 ```bash
