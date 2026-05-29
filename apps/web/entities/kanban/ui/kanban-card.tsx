@@ -18,6 +18,7 @@ interface Props {
 
 export const KanbanCard = ({ card, className, footer }: Props) => (
   <article
+    aria-label={"Card: " + card.title}
     className={cn("rounded-md border bg-background p-3 shadow-xs", className)}
   >
     <h3 className="text-sm leading-5 font-medium">{card.title}</h3>

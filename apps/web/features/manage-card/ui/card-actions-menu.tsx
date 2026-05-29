@@ -44,7 +44,7 @@ export const CardActionsMenu = ({ card, className, disabled }: Props) => {
             variant: "destructive",
           },
         ]}
-        label="Card actions"
+        label={"Card actions for " + card.title}
       />
       {editOpen ? (
         <EditCardDialog
