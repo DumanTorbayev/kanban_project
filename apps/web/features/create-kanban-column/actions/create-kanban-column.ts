@@ -7,7 +7,6 @@ import {
   normalizeKanbanColumn,
   type KanbanColumnRow,
 } from "@/entities/kanban/lib/normalize-kanban";
-import { getNextPosition } from "@/entities/kanban/lib/position";
 import { requireUser } from "@/shared/lib/auth/require-user";
 import {
   assertMaxLength,
@@ -28,26 +27,10 @@ export async function createKanbanColumn(input: CreateKanbanColumnInput) {
   const { supabase } = await requireUser({
     redirectTo: "/boards/" + input.boardId,
   });
-  const { data: lastColumn, error: positionError } = await supabase
-    .from("board_columns")
-    .select("position")
-    .eq("board_id", input.boardId)
-    .order("position", {
-      ascending: false,
-    })
-    .limit(1)
-    .maybeSingle();
-
-  if (positionError) {
-    throw new Error(positionError.message);
-  }
-
   const { data, error } = await supabase
-    .from("board_columns")
-    .insert({
-      board_id: input.boardId,
-      title: input.title.trim(),
-      position: getNextPosition(lastColumn?.position),
+    .rpc("create_kanban_column", {
+      column_title: input.title,
+      target_board_id: input.boardId,
     })
     .select(KANBAN_COLUMN_COLUMNS)
     .single();
