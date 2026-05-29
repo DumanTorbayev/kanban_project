@@ -121,6 +121,7 @@ pnpm typecheck     # Run TypeScript checks
 pnpm format        # Format the repository with Prettier
 pnpm format:check  # Check Prettier formatting
 pnpm stylelint     # Lint CSS files
+pnpm test:e2e      # Run Playwright end-to-end tests
 ```
 
 ## Quality Gates
@@ -132,6 +133,7 @@ pnpm lint
 pnpm typecheck
 pnpm format:check
 pnpm stylelint
+pnpm test:e2e
 pnpm --filter web build
 ```
 
