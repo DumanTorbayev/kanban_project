@@ -15,7 +15,9 @@ type MoveCardResult = {
   columns: KanbanColumnWithCards[];
   cardId: string;
   columnId: string;
+  nextCardId: string | null;
   position: number;
+  previousCardId: string | null;
 };
 
 export function findCardLocation(
@@ -118,7 +120,9 @@ export function moveCardInColumns(
     columns: nextColumns,
     cardId: movedCard.id,
     columnId: targetColumn.id,
+    nextCardId: targetColumn.cards[targetCardIndex + 1]?.id ?? null,
     position: nextPosition,
+    previousCardId: targetColumn.cards[targetCardIndex - 1]?.id ?? null,
   };
 }
 

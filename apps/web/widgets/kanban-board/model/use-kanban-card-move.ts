@@ -8,7 +8,11 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
+import { replaceCardInBoard } from "@/entities/kanban/lib/cache-updaters";
+import {
+  type KanbanCard,
+  type KanbanColumnWithCards,
+} from "@/entities/kanban/model/types";
 import {
   moveCard as moveCardAction,
   type MoveCardInput,
@@ -17,6 +21,7 @@ import { getErrorMessage } from "@/shared/lib/errors/get-error-message";
 
 export type MoveCardMutationInput = MoveCardInput & {
   nextColumns: KanbanColumnWithCards[];
+  position: number;
 };
 
 interface Props {
@@ -28,7 +33,7 @@ export const useKanbanCardMove = ({ queryClient, queryKey }: Props) => {
   const router = useRouter();
   const [moveError, setMoveError] = useState<string | null>(null);
   const moveCardMutation = useMutation<
-    MoveCardInput,
+    KanbanCard,
     Error,
     MoveCardMutationInput,
     { previousColumns?: KanbanColumnWithCards[] }
@@ -38,7 +43,8 @@ export const useKanbanCardMove = ({ queryClient, queryKey }: Props) => {
         boardId: input.boardId,
         cardId: input.cardId,
         columnId: input.columnId,
-        position: input.position,
+        nextCardId: input.nextCardId,
+        previousCardId: input.previousCardId,
       }),
     onMutate: async (input) => {
       await queryClient.cancelQueries({
@@ -62,7 +68,10 @@ export const useKanbanCardMove = ({ queryClient, queryKey }: Props) => {
 
       setMoveError(getErrorMessage(error, "Could not move card."));
     },
-    onSuccess: () => {
+    onSuccess: (movedCard) => {
+      queryClient.setQueryData<KanbanColumnWithCards[]>(queryKey, (current) =>
+        replaceCardInBoard(current ?? [], movedCard),
+      );
       setMoveError(null);
       router.refresh();
     },

@@ -94,6 +94,8 @@ describe("moveCardInColumns", () => {
 
     expect(result?.cardId).toBe("card-3");
     expect(result?.columnId).toBe("todo");
+    expect(result?.previousCardId).toBeNull();
+    expect(result?.nextCardId).toBe("card-1");
     expect(result?.position).toBe(512);
     expect(result?.columns[0]?.cards.map((card) => card.id)).toEqual([
       "card-3",
@@ -127,6 +129,8 @@ describe("moveCardInColumns", () => {
 
     expect(result?.cardId).toBe("card-1");
     expect(result?.columnId).toBe("todo");
+    expect(result?.previousCardId).toBe("card-2");
+    expect(result?.nextCardId).toBe("card-3");
     expect(result?.position).toBe(2560);
     expect(result?.columns[0]?.cards.map((card) => card.id)).toEqual([
       "card-2",
@@ -166,6 +170,8 @@ describe("moveCardInColumns", () => {
     const result = moveCardInColumns(columns, "todo-card", "doing-card-2");
 
     expect(result?.columnId).toBe("doing");
+    expect(result?.previousCardId).toBe("doing-card-1");
+    expect(result?.nextCardId).toBe("doing-card-2");
     expect(result?.position).toBe(1536);
     expect(result?.columns[0]?.cards).toEqual([]);
     expect(result?.columns[1]?.cards.map((card) => card.id)).toEqual([
@@ -199,6 +205,8 @@ describe("moveCardInColumns", () => {
     const result = moveCardInColumns(columns, "todo-card", "done");
 
     expect(result?.columnId).toBe("done");
+    expect(result?.previousCardId).toBeNull();
+    expect(result?.nextCardId).toBeNull();
     expect(result?.position).toBe(1024);
     expect(result?.columns[1]?.cards).toEqual([
       expect.objectContaining({
