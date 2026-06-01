@@ -11,6 +11,7 @@ import { type BoardDetails } from "@/entities/board/model/types";
 import { BoardActionsMenu } from "@/features/manage-board/ui/board-actions-menu";
 import { Button } from "@workspace/ui/components/button";
 
+import { useBoardMembersRealtime } from "../model/use-board-members-realtime";
 import { BoardMembersPreview } from "./board-members-preview";
 
 const dateFormatter = new Intl.DateTimeFormat("en", {
@@ -36,6 +37,16 @@ export const BoardHeader = ({ board, currentUserId, members }: Props) => {
     queryFn: () => Promise.resolve(board),
     queryKey,
   });
+  const { data: currentMembers = members } = useQuery({
+    enabled: false,
+    initialData: members,
+    queryFn: () => Promise.resolve(members),
+    queryKey: membersQueryKey,
+  });
+  const { error: membersRealtimeError } = useBoardMembersRealtime({
+    boardId: board.id,
+    currentUserId,
+  });
 
   useEffect(() => {
     queryClient.setQueryData(queryKey, board);
@@ -52,12 +63,17 @@ export const BoardHeader = ({ board, currentUserId, members }: Props) => {
         <p className="text-sm text-muted-foreground">
           Created {dateFormatter.format(new Date(currentBoard.created_at))}
         </p>
-        <BoardMembersPreview members={members} />
+        <BoardMembersPreview members={currentMembers} />
+        {membersRealtimeError ? (
+          <p className="mt-2 text-xs text-destructive">
+            {membersRealtimeError}
+          </p>
+        ) : null}
       </div>
       <BoardActionsMenu
         board={currentBoard}
         currentUserId={currentUserId}
-        members={members}
+        members={currentMembers}
       />
     </header>
   );

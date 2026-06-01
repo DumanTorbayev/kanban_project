@@ -11,8 +11,7 @@ import {
   type KanbanColumnWithCards,
 } from "@/entities/kanban/model/types";
 import { createClient } from "@/lib/supabase/client";
-
-import { useReconnectSignals } from "./use-reconnect-signals";
+import { useReconnectSignals } from "@/shared/lib/browser/use-reconnect-signals";
 
 const RESYNC_DEBOUNCE_MS = 150;
 
