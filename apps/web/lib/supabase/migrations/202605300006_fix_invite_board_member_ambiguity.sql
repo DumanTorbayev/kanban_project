@@ -1,7 +1,7 @@
 -- Fixes "column reference \"user_id\" is ambiguous" raised by invite_board_member.
 -- The RETURNS TABLE output columns (user_id, role, ...) shadow board_members
--- columns inside the INSERT ... ON CONFLICT statement, where the conflict
--- target cannot be table-qualified. Resolving conflicts to the column wins.
+-- columns inside INSERT ... ON CONFLICT. Referencing the named constraint avoids
+-- ambiguous conflict target resolution.
 
 create or replace function public.invite_board_member(
   target_board_id uuid,
@@ -20,7 +20,6 @@ language plpgsql
 security definer
 set search_path = public
 as $$
-#variable_conflict use_column
 declare
   current_user_id uuid := auth.uid();
   clean_email text := lower(trim(coalesce(invitee_email, '')));
@@ -55,7 +54,7 @@ begin
 
   insert into public.board_members (board_id, user_id, role)
   values (target_board_id, invitee.id, clean_role)
-  on conflict (board_id, user_id) do update
+  on conflict on constraint board_members_pkey do update
   set role = case
     when public.board_members.role = 'owner' then public.board_members.role
     else excluded.role
