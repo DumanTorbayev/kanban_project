@@ -6,14 +6,19 @@ import { useEffect } from "react";
 import { boardsQueryKey } from "@/entities/board/model/query-keys";
 import { type BoardListItem } from "@/entities/board/model/types";
 import { BoardCard } from "@/entities/board/ui/board-card";
+import { useBoardsRealtime } from "@/widgets/boards-list/model/use-boards-realtime";
 
 interface Props {
   boards: BoardListItem[];
+  currentUserId: string;
   error?: string;
 }
 
-export const BoardsList = ({ boards, error }: Props) => {
+export const BoardsList = ({ boards, currentUserId, error }: Props) => {
   const queryClient = useQueryClient();
+  const { error: realtimeError } = useBoardsRealtime({
+    currentUserId,
+  });
   const { data: currentBoards = boards } = useQuery({
     enabled: false,
     initialData: boards,
@@ -43,6 +48,12 @@ export const BoardsList = ({ boards, error }: Props) => {
       {error ? (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error}
+        </p>
+      ) : null}
+
+      {!error && realtimeError ? (
+        <p className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          {realtimeError}
         </p>
       ) : null}
 
