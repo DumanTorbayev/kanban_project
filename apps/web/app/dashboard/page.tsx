@@ -16,7 +16,11 @@ const DashboardPage = async () => {
       <AppContainer>
         <DashboardHeader email={user.email} />
         <CreateBoardForm />
-        <BoardsList boards={boards ?? []} error={boardsError?.message} />
+        <BoardsList
+          boards={boards ?? []}
+          currentUserId={user.id}
+          error={boardsError?.message}
+        />
       </AppContainer>
     </main>
   );
