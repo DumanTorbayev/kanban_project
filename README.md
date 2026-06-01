@@ -9,10 +9,14 @@ The goal is to build a collaborative workspace where users can manage boards, or
 Current milestone:
 
 - Monorepo foundation
-- Supabase authentication
-- Protected application routes
-- Initial database schema for profiles, boards, and board membership
-- Base quality tooling: ESLint, Prettier, Stylelint, Husky, lint-staged, Commitlint
+- Supabase authentication with SSR cookies
+- Protected application routes and RLS-backed authorization
+- Boards, columns, and cards CRUD
+- Drag-and-drop Kanban card movement with optimistic cache updates
+- Supabase Realtime for board, card, member, and dashboard synchronization
+- Time tracking with persisted entries, summaries, analytics, CSV export, and PDF export
+- Virtualized card lists for large columns
+- Quality tooling: ESLint, Prettier, Stylelint, Vitest, Playwright, Husky, lint-staged, Commitlint
 
 ## Tech Stack
 
@@ -76,9 +80,11 @@ Optional variables for authenticated Playwright tests:
 ```env
 PLAYWRIGHT_TEST_EMAIL=e2e-user@example.com
 PLAYWRIGHT_TEST_PASSWORD=change-me
+PLAYWRIGHT_SECONDARY_EMAIL=e2e-secondary@example.com
+PLAYWRIGHT_SECONDARY_PASSWORD=change-me
 ```
 
-Create this account in Supabase Auth before running authenticated E2E scenarios. Without these variables, authenticated tests are skipped and anonymous routing tests still run.
+Create these accounts in Supabase Auth before running authenticated and collaboration E2E scenarios. Without these variables, authenticated tests are skipped and anonymous routing tests still run.
 
 Run the development server:
 
@@ -94,20 +100,26 @@ http://localhost:3000
 
 ## Supabase Setup
 
-Apply the initial SQL migration in the Supabase SQL Editor:
+Apply SQL migrations in timestamp order from:
 
 ```txt
-apps/web/lib/supabase/migrations/202605190001_init_auth_boards.sql
+apps/web/lib/supabase/migrations
 ```
 
-The migration creates:
+The migrations create and configure:
 
 - `profiles`
 - `boards`
 - `board_members`
+- `board_columns`
+- `cards`
+- `time_entries`
 - profile creation trigger for new auth users
 - board owner membership trigger
 - Row Level Security policies
+- Supabase Realtime publications
+- board member management RPC functions
+- atomic time tracking RPC functions
 
 For local auth redirects, configure Supabase Auth URL settings:
 
@@ -131,6 +143,7 @@ pnpm format        # Format the repository with Prettier
 pnpm format:check  # Check Prettier formatting
 pnpm stylelint     # Lint CSS files
 pnpm test:e2e      # Run Playwright end-to-end tests
+pnpm test:coverage # Run Vitest with coverage thresholds
 ```
 
 ## Quality Gates
@@ -142,11 +155,41 @@ pnpm lint
 pnpm typecheck
 pnpm format:check
 pnpm stylelint
+pnpm test:coverage
 pnpm test:e2e
 pnpm --filter web build
 ```
 
 Git hooks run `lint-staged` before commits and Commitlint for commit messages.
+
+## CI and Deployment
+
+GitHub Actions runs the same quality gates on pull requests and pushes to `main`:
+
+```txt
+install -> lint -> typecheck -> format:check -> stylelint -> test:coverage -> build -> e2e
+```
+
+Authenticated Playwright scenarios require repository secrets:
+
+```txt
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+PLAYWRIGHT_TEST_EMAIL
+PLAYWRIGHT_TEST_PASSWORD
+PLAYWRIGHT_SECONDARY_EMAIL
+PLAYWRIGHT_SECONDARY_PASSWORD
+```
+
+Without Playwright credentials, authenticated E2E scenarios are skipped while anonymous routing smoke tests still run.
+
+Recommended Vercel settings for this monorepo:
+
+```txt
+Install command: pnpm install --frozen-lockfile
+Build command: pnpm --filter web build
+Environment variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+```
 
 ## Roadmap
 
@@ -187,7 +230,6 @@ Performance goals and verification steps are tracked in [`docs/performance.md`](
 
 - Vitest business logic coverage
 - Playwright end-to-end scenarios
-- Storybook for shared UI
 - GitHub Actions pipeline
 - Vercel deployment
 
