@@ -2,9 +2,11 @@ import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
 const isCi = Boolean(process.env.CI);
+const { hostname: webServerHostname, port } = new URL(baseURL);
+const webServerPort = port || "3000";
 const webServerCommand = isCi
-  ? "pnpm exec next start --hostname 127.0.0.1"
-  : "pnpm dev --hostname 127.0.0.1";
+  ? `pnpm exec next start --hostname ${webServerHostname} --port ${webServerPort}`
+  : `pnpm dev --hostname ${webServerHostname} --port ${webServerPort}`;
 
 export default defineConfig({
   expect: {
