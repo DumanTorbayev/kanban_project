@@ -203,6 +203,9 @@ test.describe("column and card CRUD", () => {
         name: "Delete card",
       })
       .click();
+    await expect(deleteCardDialog).toBeHidden({
+      timeout: 15_000,
+    });
     await expect(editedCard).toHaveCount(0);
 
     await renamedColumnRegion
@@ -226,6 +229,9 @@ test.describe("column and card CRUD", () => {
         name: "Delete column",
       })
       .click();
+    await expect(deleteColumnDialog).toBeHidden({
+      timeout: 15_000,
+    });
     await expect(renamedColumnRegion).toHaveCount(0);
 
     await page
@@ -244,13 +250,16 @@ test.describe("column and card CRUD", () => {
     });
 
     await expect(deleteBoardDialog).toBeVisible();
-    await deleteBoardDialog
-      .getByRole("button", {
-        name: "Delete board",
-      })
-      .click();
-
-    await expect(page).toHaveURL(/\/dashboard$/);
+    await Promise.all([
+      page.waitForURL(/\/dashboard$/, {
+        timeout: 15_000,
+      }),
+      deleteBoardDialog
+        .getByRole("button", {
+          name: "Delete board",
+        })
+        .click(),
+    ]);
     await expect(
       page.getByRole("link", {
         name: new RegExp(boardTitle),
