@@ -218,6 +218,7 @@ Environment variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABL
 - Lighthouse performance checks
 
 Performance goals and verification steps are tracked in [`docs/performance.md`](docs/performance.md).
+Security controls and deployment hardening notes are tracked in [`docs/security.md`](docs/security.md).
 
 ### Time Tracking and Analytics
 
