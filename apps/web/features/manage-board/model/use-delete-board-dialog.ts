@@ -74,7 +74,6 @@ export const useDeleteBoardDialog = ({ board, onOpenChange }: Props) => {
     onSuccess: () => {
       onOpenChange(false);
       router.push("/dashboard");
-      router.refresh();
     },
   });
 

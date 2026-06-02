@@ -1,12 +1,18 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
+const isCi = Boolean(process.env.CI);
+const { hostname: webServerHostname, port } = new URL(baseURL);
+const webServerPort = port || "3000";
+const webServerCommand = isCi
+  ? `pnpm exec next start --hostname ${webServerHostname} --port ${webServerPort}`
+  : `pnpm dev --hostname ${webServerHostname} --port ${webServerPort}`;
 
 export default defineConfig({
   expect: {
     timeout: 5000,
   },
-  forbidOnly: Boolean(process.env.CI),
+  forbidOnly: isCi,
   fullyParallel: true,
   outputDir: "./test-results",
   projects: [
@@ -17,7 +23,7 @@ export default defineConfig({
       },
     },
   ],
-  reporter: process.env.CI
+  reporter: isCi
     ? [
         ["github"],
         [
@@ -36,7 +42,7 @@ export default defineConfig({
           },
         ],
       ],
-  retries: process.env.CI ? 2 : 0,
+  retries: isCi ? 2 : 0,
   testDir: "./e2e",
   timeout: 30000,
   use: {
@@ -46,10 +52,10 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   webServer: {
-    command: "pnpm dev --hostname 127.0.0.1",
-    reuseExistingServer: !process.env.CI,
+    command: webServerCommand,
+    reuseExistingServer: !isCi,
     timeout: 120000,
     url: baseURL,
   },
-  workers: process.env.CI ? 1 : undefined,
+  workers: isCi ? 1 : undefined,
 });

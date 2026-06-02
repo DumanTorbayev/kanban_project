@@ -16,7 +16,7 @@ interface Props {
 
 export const BoardsList = ({ boards, currentUserId, error }: Props) => {
   const queryClient = useQueryClient();
-  const { error: realtimeError } = useBoardsRealtime({
+  const { error: realtimeError, status: realtimeStatus } = useBoardsRealtime({
     currentUserId,
   });
   const { data: currentBoards = boards } = useQuery({
@@ -33,6 +33,9 @@ export const BoardsList = ({ boards, currentUserId, error }: Props) => {
 
   return (
     <section className="rounded-lg border bg-background p-5 shadow-sm">
+      <span className="sr-only" data-testid="dashboard-realtime-status">
+        {realtimeStatus}
+      </span>
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-medium">Boards</h2>

@@ -5,7 +5,8 @@ import { Button } from "@workspace/ui/components/button";
 import { useCreateBoardForm } from "../model/use-create-board-form";
 
 export const CreateBoardForm = () => {
-  const { error, formRef, handleSubmit, isPending } = useCreateBoardForm();
+  const { error, formRef, handleSubmit, isDisabled, isPending } =
+    useCreateBoardForm();
 
   return (
     <section className="rounded-lg border bg-background p-5 shadow-sm">
@@ -31,13 +32,14 @@ export const CreateBoardForm = () => {
           <span className="sr-only">Board title</span>
           <input
             className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            disabled={isDisabled}
             name="title"
             placeholder="Product Roadmap"
             required
             type="text"
           />
         </label>
-        <Button disabled={isPending} type="submit">
+        <Button disabled={isDisabled} type="submit">
           {isPending ? "Creating..." : "Create board"}
         </Button>
       </form>

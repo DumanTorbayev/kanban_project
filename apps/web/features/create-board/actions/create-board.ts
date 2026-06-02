@@ -1,5 +1,7 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
+
 import { revalidatePath } from "next/cache";
 
 import { type BoardListItem } from "@/entities/board/model/types";
@@ -21,17 +23,26 @@ export async function createBoard(input: CreateBoardInput) {
   const { supabase, user } = await requireUser({
     redirectTo: "/dashboard",
   });
-  const { data, error } = await supabase
+  const boardId = randomUUID();
+  const title = input.title.trim();
+  const { error: insertError } = await supabase.from("boards").insert({
+    id: boardId,
+    title,
+    owner_id: user.id,
+  });
+
+  if (insertError) {
+    throw new Error(insertError.message);
+  }
+
+  const { data, error: selectError } = await supabase
     .from("boards")
-    .insert({
-      title: input.title.trim(),
-      owner_id: user.id,
-    })
     .select("id, title, created_at")
+    .eq("id", boardId)
     .single();
 
-  if (error) {
-    throw new Error(error.message);
+  if (selectError) {
+    throw new Error(selectError.message);
   }
 
   revalidatePath("/dashboard");

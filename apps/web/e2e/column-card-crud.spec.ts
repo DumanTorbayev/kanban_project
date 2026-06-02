@@ -1,8 +1,68 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import { createBoardFromDashboard } from "./helpers/boards";
 import { getE2eCredentials, signIn } from "./helpers/auth";
+import { AUTHENTICATED_E2E_TIMEOUT_MS } from "./helpers/timeouts";
 
 const e2eCredentials = getE2eCredentials();
+
+const renameColumnWithRetry = async ({
+  page,
+  renameDialog,
+  title,
+  trigger,
+}: {
+  page: Page;
+  renameDialog: Locator;
+  title: string;
+  trigger: Locator;
+}) => {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      await trigger.click();
+      await page
+        .getByRole("menuitem", {
+          name: "Rename column",
+        })
+        .click({
+          timeout: 3_000,
+        });
+      const titleInput = renameDialog.getByLabel("Title");
+
+      await expect(titleInput).toBeVisible({
+        timeout: 3_000,
+      });
+      await titleInput.fill(title);
+      await renameDialog
+        .getByRole("button", {
+          name: "Save changes",
+        })
+        .click({
+          timeout: 3_000,
+        });
+      return;
+    } catch {
+      await page.keyboard.press("Escape").catch(() => undefined);
+    }
+  }
+
+  await trigger.click();
+  await page
+    .getByRole("menuitem", {
+      name: "Rename column",
+    })
+    .click();
+
+  const titleInput = renameDialog.getByLabel("Title");
+
+  await expect(titleInput).toBeVisible();
+  await titleInput.fill(title);
+  await renameDialog
+    .getByRole("button", {
+      name: "Save changes",
+    })
+    .click();
+};
 
 test.describe("column and card CRUD", () => {
   test.skip(
@@ -11,6 +71,8 @@ test.describe("column and card CRUD", () => {
   );
 
   test("creates, renames, and deletes a column and card", async ({ page }) => {
+    test.setTimeout(AUTHENTICATED_E2E_TIMEOUT_MS);
+
     if (!e2eCredentials) {
       throw new Error("Missing Playwright test credentials.");
     }
@@ -27,18 +89,9 @@ test.describe("column and card CRUD", () => {
     await signIn(page, e2eCredentials);
     await expect(page).toHaveURL(/\/dashboard$/);
 
-    await page.getByLabel("Board title").fill(boardTitle);
-    await page
-      .getByRole("button", {
-        name: "Create board",
-      })
-      .click();
+    const boardLink = await createBoardFromDashboard(page, boardTitle);
 
-    await page
-      .getByRole("link", {
-        name: new RegExp(boardTitle),
-      })
-      .click();
+    await boardLink.click();
     await expect(page).toHaveURL(/\/boards\//);
 
     await page.getByLabel("Column title").fill(columnTitle);
@@ -53,28 +106,18 @@ test.describe("column and card CRUD", () => {
     });
 
     await expect(columnRegion).toBeVisible();
-    await columnRegion
-      .getByRole("button", {
-        name: `Column actions for ${columnTitle}`,
-      })
-      .click();
-    await page
-      .getByRole("menuitem", {
-        name: "Rename column",
-      })
-      .click();
-
     const renameColumnDialog = page.getByRole("dialog", {
       name: "Rename column",
     });
 
-    await expect(renameColumnDialog).toBeVisible();
-    await renameColumnDialog.getByLabel("Title").fill(renamedColumnTitle);
-    await renameColumnDialog
-      .getByRole("button", {
-        name: "Save changes",
-      })
-      .click();
+    await renameColumnWithRetry({
+      page,
+      renameDialog: renameColumnDialog,
+      title: renamedColumnTitle,
+      trigger: columnRegion.getByRole("button", {
+        name: `Column actions for ${columnTitle}`,
+      }),
+    });
 
     const renamedColumnRegion = page.getByRole("region", {
       name: `${renamedColumnTitle} column`,

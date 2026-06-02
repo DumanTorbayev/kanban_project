@@ -12,24 +12,33 @@ export type DeleteBoardInput = {
 export async function deleteBoard(input: DeleteBoardInput) {
   assertRequired(input.boardId, "Board id is required.");
 
-  const { supabase } = await requireUser({
+  const { supabase, user } = await requireUser({
     redirectTo: "/boards/" + input.boardId,
   });
-  const { data, error } = await supabase
+  const { data: board, error: selectError } = await supabase
     .from("boards")
-    .delete()
-    .eq("id", input.boardId)
     .select("id")
+    .eq("id", input.boardId)
+    .eq("owner_id", user.id)
     .maybeSingle();
 
-  if (error) {
-    throw new Error(error.message);
+  if (selectError) {
+    throw new Error(selectError.message);
   }
 
-  if (!data) {
+  if (!board) {
     throw new Error(
       "Board not found or you do not have permission to delete it.",
     );
+  }
+
+  const { error: deleteError } = await supabase
+    .from("boards")
+    .delete()
+    .eq("id", input.boardId);
+
+  if (deleteError) {
+    throw new Error(deleteError.message);
   }
 
   revalidatePath("/dashboard");

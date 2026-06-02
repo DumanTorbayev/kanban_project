@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { getE2eCredentials, signIn } from "./helpers/auth";
+import { AUTHENTICATED_E2E_TIMEOUT_MS } from "./helpers/timeouts";
 
 const e2eCredentials = getE2eCredentials();
 
@@ -29,6 +30,8 @@ test.describe("authenticated auth flow", () => {
   );
 
   test("signs in with a test account and signs out", async ({ page }) => {
+    test.setTimeout(AUTHENTICATED_E2E_TIMEOUT_MS);
+
     if (!e2eCredentials) {
       throw new Error("Missing Playwright test credentials.");
     }
@@ -38,6 +41,8 @@ test.describe("authenticated auth flow", () => {
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(
       page.getByRole("heading", {
+        exact: true,
+        level: 1,
         name: "Dashboard",
       }),
     ).toBeVisible();

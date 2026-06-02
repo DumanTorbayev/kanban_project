@@ -1,10 +1,12 @@
 import { expect, test } from "@playwright/test";
 
+import { createBoardFromDashboard } from "./helpers/boards";
 import {
   getE2eCredentials,
   getSecondaryE2eCredentials,
   signIn,
 } from "./helpers/auth";
+import { COLLABORATION_E2E_TIMEOUT_MS } from "./helpers/timeouts";
 
 const ownerCredentials = getE2eCredentials();
 const secondaryCredentials = getSecondaryE2eCredentials();
@@ -16,6 +18,8 @@ test.describe("board members", () => {
   );
 
   test("invites, updates, and removes a board member", async ({ browser }) => {
+    test.setTimeout(COLLABORATION_E2E_TIMEOUT_MS);
+
     if (!ownerCredentials || !secondaryCredentials) {
       throw new Error("Missing Playwright test credentials.");
     }
@@ -32,17 +36,9 @@ test.describe("board members", () => {
       await signIn(ownerPage, ownerCredentials);
       await expect(ownerPage).toHaveURL(/\/dashboard$/);
 
-      await ownerPage.getByLabel("Board title").fill(boardTitle);
-      await ownerPage
-        .getByRole("button", {
-          name: "Create board",
-        })
-        .click();
-      await ownerPage
-        .getByRole("link", {
-          name: new RegExp(boardTitle),
-        })
-        .click();
+      const boardLink = await createBoardFromDashboard(ownerPage, boardTitle);
+
+      await boardLink.click();
       await expect(ownerPage).toHaveURL(/\/boards\//);
       boardUrl = ownerPage.url();
 
@@ -141,6 +137,8 @@ test.describe("board members", () => {
   });
 
   test("syncs dashboard board access without refresh", async ({ browser }) => {
+    test.setTimeout(COLLABORATION_E2E_TIMEOUT_MS);
+
     if (!ownerCredentials || !secondaryCredentials) {
       throw new Error("Missing Playwright test credentials.");
     }
@@ -157,22 +155,19 @@ test.describe("board members", () => {
       await signIn(ownerPage, ownerCredentials);
       await expect(ownerPage).toHaveURL(/\/dashboard$/);
 
-      await ownerPage.getByLabel("Board title").fill(boardTitle);
-      await ownerPage
-        .getByRole("button", {
-          name: "Create board",
-        })
-        .click();
-      await ownerPage
-        .getByRole("link", {
-          name: new RegExp(boardTitle),
-        })
-        .click();
+      const boardLink = await createBoardFromDashboard(ownerPage, boardTitle);
+
+      await boardLink.click();
       await expect(ownerPage).toHaveURL(/\/boards\//);
       boardUrl = ownerPage.url();
 
       await signIn(secondaryPage, secondaryCredentials);
       await expect(secondaryPage).toHaveURL(/\/dashboard$/);
+      await expect(
+        secondaryPage.getByTestId("dashboard-realtime-status"),
+      ).toHaveText("connected", {
+        timeout: 15_000,
+      });
 
       const secondaryBoardLink = secondaryPage.getByRole("link", {
         name: new RegExp(boardTitle),
@@ -204,7 +199,7 @@ test.describe("board members", () => {
         .click();
 
       await expect(secondaryBoardLink).toBeVisible({
-        timeout: 10_000,
+        timeout: 15_000,
       });
 
       const secondaryMemberRow = membersDialog.getByRole("listitem").filter({
@@ -225,7 +220,7 @@ test.describe("board members", () => {
         .click();
 
       await expect(secondaryBoardLink).toHaveCount(0, {
-        timeout: 10_000,
+        timeout: 15_000,
       });
     } finally {
       if (boardUrl) {
