@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { boardsQueryKey } from "@/entities/board/model/query-keys";
 import { type BoardListItem } from "@/entities/board/model/types";
@@ -20,6 +20,7 @@ export const useCreateBoardForm = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   const mutation = useMutation<
     BoardListItem,
     Error,
@@ -59,17 +60,20 @@ export const useCreateBoardForm = () => {
     onSuccess: (createdBoard, _input, context) => {
       queryClient.setQueryData<BoardListItem[]>(boardsQueryKey, (current) => {
         const boards = current ?? [];
-        const hasOptimisticBoard = boards.some(
-          (board) => board.id === context.optimisticBoardId,
+        const boardsWithoutOptimistic = boards.filter(
+          (board) => board.id !== context.optimisticBoardId,
+        );
+        const hasCreatedBoard = boardsWithoutOptimistic.some(
+          (board) => board.id === createdBoard.id,
         );
 
-        if (!hasOptimisticBoard) {
-          return [createdBoard, ...boards];
+        if (hasCreatedBoard) {
+          return boardsWithoutOptimistic.map((board) =>
+            board.id === createdBoard.id ? createdBoard : board,
+          );
         }
 
-        return boards.map((board) =>
-          board.id === context.optimisticBoardId ? createdBoard : board,
-        );
+        return [createdBoard, ...boardsWithoutOptimistic];
       });
       formRef.current?.reset();
       router.refresh();
@@ -78,6 +82,10 @@ export const useCreateBoardForm = () => {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!isHydrated || mutation.isPending) {
+      return;
+    }
 
     const formData = new FormData(event.currentTarget);
     const title = String(formData.get("title") ?? "").trim();
@@ -92,10 +100,21 @@ export const useCreateBoardForm = () => {
     });
   };
 
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setIsHydrated(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
   return {
     error,
     formRef,
     handleSubmit,
+    isDisabled: !isHydrated || mutation.isPending,
     isPending: mutation.isPending,
   };
 };

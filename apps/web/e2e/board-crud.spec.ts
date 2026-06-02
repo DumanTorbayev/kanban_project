@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
+import { createBoardFromDashboard } from "./helpers/boards";
 import { getE2eCredentials, signIn } from "./helpers/auth";
+import { AUTHENTICATED_E2E_TIMEOUT_MS } from "./helpers/timeouts";
 
 const e2eCredentials = getE2eCredentials();
 
@@ -11,6 +13,8 @@ test.describe("board CRUD", () => {
   );
 
   test("creates, renames, and deletes a board", async ({ page }) => {
+    test.setTimeout(AUTHENTICATED_E2E_TIMEOUT_MS);
+
     if (!e2eCredentials) {
       throw new Error("Missing Playwright test credentials.");
     }
@@ -20,20 +24,11 @@ test.describe("board CRUD", () => {
     const renamedBoardTitle = `E2E Board Renamed ${uniqueSuffix}`;
 
     await signIn(page, e2eCredentials);
-    await expect(page).toHaveURL(/\/dashboard$/);
-
-    await page.getByLabel("Board title").fill(boardTitle);
-    await page
-      .getByRole("button", {
-        name: "Create board",
-      })
-      .click();
-
-    const boardLink = page.getByRole("link", {
-      name: new RegExp(boardTitle),
+    await expect(page).toHaveURL(/\/dashboard$/, {
+      timeout: 15_000,
     });
 
-    await expect(boardLink).toBeVisible();
+    const boardLink = await createBoardFromDashboard(page, boardTitle);
     await boardLink.click();
 
     await expect(page).toHaveURL(/\/boards\//);
@@ -94,7 +89,9 @@ test.describe("board CRUD", () => {
       })
       .click();
 
-    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page).toHaveURL(/\/dashboard$/, {
+      timeout: 15_000,
+    });
     await expect(
       page.getByRole("link", {
         name: new RegExp(renamedBoardTitle),

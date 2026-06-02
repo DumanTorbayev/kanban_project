@@ -9,6 +9,14 @@ import { createClient } from "@/lib/supabase/client";
 import { useReconnectSignals } from "@/shared/lib/browser/use-reconnect-signals";
 
 const RESYNC_DEBOUNCE_MS = 150;
+const ACCESS_RESYNC_INTERVAL_MS = 5_000;
+
+export type BoardsRealtimeStatus =
+  | "connecting"
+  | "connected"
+  | "reconnecting"
+  | "disconnected"
+  | "error";
 
 type BoardMemberRealtimeRow = {
   board_id: string;
@@ -30,7 +38,11 @@ interface Props {
 export const useBoardsRealtime = ({ currentUserId }: Props) => {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<BoardsRealtimeStatus>("connecting");
   const [supabase] = useState(() => createClient());
+  const accessResyncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
   const resyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const syncBoards = useCallback(async () => {
@@ -65,9 +77,11 @@ export const useBoardsRealtime = ({ currentUserId }: Props) => {
   }, [syncBoards]);
 
   const handleOffline = useCallback(() => {
+    setStatus("disconnected");
     setError("Dashboard realtime connection is offline.");
   }, []);
   const handleOnline = useCallback(() => {
+    setStatus("reconnecting");
     scheduleSync();
   }, [scheduleSync]);
 
@@ -122,21 +136,46 @@ export const useBoardsRealtime = ({ currentUserId }: Props) => {
         }
 
         if (nextStatus === "SUBSCRIBED") {
+          setStatus("connected");
           setError(null);
           scheduleSync();
           return;
         }
 
         if (nextStatus === "CHANNEL_ERROR") {
+          setStatus("error");
           setError(
             subscribeError?.message ??
               "Dashboard realtime channel error. Check publication and RLS access.",
           );
+          return;
+        }
+
+        if (nextStatus === "TIMED_OUT") {
+          setStatus("reconnecting");
+          setError(
+            subscribeError?.message ??
+              "Dashboard realtime connection timed out. Trying to reconnect.",
+          );
+          return;
+        }
+
+        if (nextStatus === "CLOSED") {
+          setStatus("disconnected");
         }
       });
 
+    accessResyncIntervalRef.current = setInterval(() => {
+      scheduleSync();
+    }, ACCESS_RESYNC_INTERVAL_MS);
+
     return () => {
       isActive = false;
+
+      if (accessResyncIntervalRef.current) {
+        clearInterval(accessResyncIntervalRef.current);
+        accessResyncIntervalRef.current = null;
+      }
 
       if (resyncTimerRef.current) {
         clearTimeout(resyncTimerRef.current);
@@ -149,5 +188,6 @@ export const useBoardsRealtime = ({ currentUserId }: Props) => {
 
   return {
     error,
+    status,
   };
 };

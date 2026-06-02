@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
 import {
   addColumnToBoard,
@@ -36,6 +36,7 @@ export const useCreateKanbanColumnForm = ({ boardId }: Props) => {
   const queryClient = useQueryClient();
   const queryKey = useMemo(() => kanbanBoardQueryKey(boardId), [boardId]);
   const [error, setError] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   const mutation = useMutation<
     KanbanColumn,
     Error,
@@ -97,6 +98,10 @@ export const useCreateKanbanColumnForm = ({ boardId }: Props) => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (!isHydrated || mutation.isPending) {
+      return;
+    }
+
     const formData = new FormData(event.currentTarget);
     const title = String(formData.get("title") ?? "").trim();
 
@@ -111,10 +116,21 @@ export const useCreateKanbanColumnForm = ({ boardId }: Props) => {
     });
   };
 
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setIsHydrated(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
   return {
     error,
     formRef,
     handleSubmit,
+    isDisabled: !isHydrated || mutation.isPending,
     isPending: mutation.isPending,
   };
 };
