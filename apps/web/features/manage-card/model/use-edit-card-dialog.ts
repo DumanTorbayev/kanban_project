@@ -73,9 +73,19 @@ export const useEditCardDialog = ({ card, onOpenChange }: Props) => {
     },
   });
 
-  const handleCancel = () => onOpenChange(false);
+  const handleCancel = () => {
+    if (mutation.isPending) {
+      return;
+    }
+
+    onOpenChange(false);
+  };
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (mutation.isPending) {
+      return;
+    }
 
     const formData = new FormData(event.currentTarget);
     const title = String(formData.get("title") ?? "").trim();

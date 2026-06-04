@@ -3,6 +3,7 @@
 import { UserPlus } from "lucide-react";
 
 import { type BoardMember } from "@/entities/board-member/model/types";
+import { FormErrorMessage } from "@/shared/ui/form-error-message";
 import { Button } from "@workspace/ui/components/button";
 import { ConfirmDialog } from "@workspace/ui/components/confirm-dialog";
 import { Modal } from "@workspace/ui/components/modal";
@@ -44,21 +45,22 @@ export const BoardMembersDialog = ({
     initialMembers,
     onOpenChange,
   });
+  const errorId = "board-members-error";
+  const isPending = invitePending || removePending || rolePending;
 
   return (
     <>
       <Modal
         className="max-w-2xl"
         description="Invite registered users and manage access to this board."
+        isDismissDisabled={isPending}
         onOpenChange={onOpenChange}
         open={open}
         title="Board members"
       >
         <div className="space-y-4">
           {error ? (
-            <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {error}
-            </p>
+            <FormErrorMessage id={errorId}>{error}</FormErrorMessage>
           ) : null}
 
           {canManage ? (
@@ -71,7 +73,9 @@ export const BoardMembersDialog = ({
                   Email
                 </span>
                 <input
-                  className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                  aria-describedby={error ? errorId : undefined}
+                  aria-invalid={Boolean(error)}
+                  className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={invitePending}
                   name="email"
                   placeholder="teammate@example.com"
@@ -84,7 +88,7 @@ export const BoardMembersDialog = ({
                   Role
                 </span>
                 <select
-                  className="h-9 w-full cursor-pointer rounded-md border bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                  className="h-9 w-full cursor-pointer rounded-md border bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                   defaultValue="member"
                   disabled={invitePending}
                   name="role"
@@ -119,7 +123,12 @@ export const BoardMembersDialog = ({
           </ul>
 
           <div className="flex justify-end">
-            <Button onClick={handleCancel} type="button" variant="outline">
+            <Button
+              disabled={isPending}
+              onClick={handleCancel}
+              type="button"
+              variant="outline"
+            >
               Close
             </Button>
           </div>

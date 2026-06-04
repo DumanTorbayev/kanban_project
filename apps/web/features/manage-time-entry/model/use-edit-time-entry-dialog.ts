@@ -101,9 +101,19 @@ export const useEditTimeEntryDialog = ({ onOpenChange, timeEntry }: Props) => {
     },
   });
 
-  const handleCancel = () => onOpenChange(false);
+  const handleCancel = () => {
+    if (mutation.isPending) {
+      return;
+    }
+
+    onOpenChange(false);
+  };
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (mutation.isPending) {
+      return;
+    }
 
     const formData = new FormData(event.currentTarget);
     const startedAt = fromDateTimeLocalValue(

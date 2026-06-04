@@ -172,10 +172,25 @@ export const useBoardMembersDialog = ({
     queryClient.setQueryData(queryKey, initialMembers);
   }, [initialMembers, queryClient, queryKey]);
 
-  const handleCancel = () => onOpenChange(false);
+  const isPending =
+    inviteMutation.isPending ||
+    removeMutation.isPending ||
+    updateRoleMutation.isPending;
+  const handleCancel = () => {
+    if (isPending) {
+      return;
+    }
+
+    onOpenChange(false);
+  };
   const handleInviteSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (inviteMutation.isPending) {
+      return;
+    }
+
+    const form = event.currentTarget;
     const formData = new FormData(event.currentTarget);
     const email = String(formData.get("email") ?? "").trim();
     const role = String(formData.get("role") ?? "member") as Exclude<
@@ -188,17 +203,27 @@ export const useBoardMembersDialog = ({
       return;
     }
 
-    inviteMutation.mutate({
-      boardId,
-      email,
-      role,
-    });
-    event.currentTarget.reset();
+    inviteMutation.mutate(
+      {
+        boardId,
+        email,
+        role,
+      },
+      {
+        onSuccess: () => {
+          form.reset();
+        },
+      },
+    );
   };
   const handleRoleChange = (
     member: BoardMember,
     role: Exclude<BoardMemberRole, "owner">,
   ) => {
+    if (updateRoleMutation.isPending || removeMutation.isPending) {
+      return;
+    }
+
     updateRoleMutation.mutate({
       boardId,
       role,
@@ -206,7 +231,7 @@ export const useBoardMembersDialog = ({
     });
   };
   const handleRemoveConfirm = () => {
-    if (!memberToRemove) {
+    if (!memberToRemove || removeMutation.isPending) {
       return;
     }
 

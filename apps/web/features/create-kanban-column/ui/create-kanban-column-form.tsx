@@ -2,6 +2,7 @@
 
 import { Plus } from "lucide-react";
 
+import { FormErrorMessage } from "@/shared/ui/form-error-message";
 import { Button } from "@workspace/ui/components/button";
 
 import { useCreateKanbanColumnForm } from "../model/use-create-kanban-column-form";
@@ -15,13 +16,14 @@ export const CreateKanbanColumnForm = ({ boardId }: Props) => {
     useCreateKanbanColumnForm({
       boardId,
     });
+  const errorId = "create-column-error";
 
   return (
     <section className="rounded-lg border bg-background p-4 shadow-sm">
       {error ? (
-        <p className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <FormErrorMessage className="mb-3" id={errorId}>
           {error}
-        </p>
+        </FormErrorMessage>
       ) : null}
 
       <form
@@ -32,7 +34,9 @@ export const CreateKanbanColumnForm = ({ boardId }: Props) => {
         <label className="min-w-0 flex-1">
           <span className="sr-only">Column title</span>
           <input
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            aria-describedby={error ? errorId : undefined}
+            aria-invalid={Boolean(error)}
+            className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isDisabled}
             name="title"
             placeholder="Next up"

@@ -1,6 +1,7 @@
 "use client";
 
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
+import { FormErrorMessage } from "@/shared/ui/form-error-message";
 import { Button } from "@workspace/ui/components/button";
 import { Modal } from "@workspace/ui/components/modal";
 
@@ -27,25 +28,28 @@ export const CreateCardDialog = ({
     onOpenChange,
     selectedColumnId,
   });
+  const errorId = "create-card-error";
 
   return (
     <Modal
       description="Create a task and choose the workflow column where it should start."
+      isDismissDisabled={form.isPending}
       onOpenChange={onOpenChange}
       open={open}
       title="Create card"
     >
       <form className="space-y-4" onSubmit={form.handleSubmit}>
         {form.error ? (
-          <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {form.error}
-          </p>
+          <FormErrorMessage id={errorId}>{form.error}</FormErrorMessage>
         ) : null}
 
         <label className="block space-y-1.5">
           <span className="text-sm font-medium">Title</span>
           <input
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            aria-describedby={form.error ? errorId : undefined}
+            aria-invalid={Boolean(form.error)}
+            className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={form.isPending}
             name="title"
             onChange={form.handleTitleChange}
             placeholder="Task title"
@@ -58,7 +62,10 @@ export const CreateCardDialog = ({
         <label className="block space-y-1.5">
           <span className="text-sm font-medium">Description</span>
           <textarea
-            className="min-h-28 w-full resize-none rounded-md border bg-background px-3 py-2 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            aria-describedby={form.error ? errorId : undefined}
+            aria-invalid={Boolean(form.error)}
+            className="min-h-28 w-full resize-none rounded-md border bg-background px-3 py-2 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={form.isPending}
             name="description"
             onChange={form.handleDescriptionChange}
             placeholder="Description"
@@ -70,8 +77,10 @@ export const CreateCardDialog = ({
         <label className="block space-y-1.5">
           <span className="text-sm font-medium">Column</span>
           <select
-            className="h-9 w-full cursor-pointer rounded-md border bg-background px-3 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
-            disabled={columns.length === 0}
+            aria-describedby={form.error ? errorId : undefined}
+            aria-invalid={Boolean(form.error)}
+            className="h-9 w-full cursor-pointer rounded-md border bg-background px-3 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={form.isPending || columns.length === 0}
             name="columnId"
             onChange={form.handleColumnChange}
             required

@@ -41,7 +41,7 @@ Current baseline result:
 ```txt
 lint: passed
 typecheck: passed
-tests: 23 passed
+tests: 77 passed
 format: passed
 production build: passed
 production server smoke check: passed (root route returned HTTP 200)

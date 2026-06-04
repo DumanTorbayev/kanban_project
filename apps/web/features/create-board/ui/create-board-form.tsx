@@ -2,11 +2,14 @@
 
 import { Button } from "@workspace/ui/components/button";
 
+import { FormErrorMessage } from "@/shared/ui/form-error-message";
+
 import { useCreateBoardForm } from "../model/use-create-board-form";
 
 export const CreateBoardForm = () => {
   const { error, formRef, handleSubmit, isDisabled, isPending } =
     useCreateBoardForm();
+  const errorId = "create-board-error";
 
   return (
     <section className="rounded-lg border bg-background p-5 shadow-sm">
@@ -18,9 +21,9 @@ export const CreateBoardForm = () => {
       </div>
 
       {error ? (
-        <p className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <FormErrorMessage className="mb-4" id={errorId}>
           {error}
-        </p>
+        </FormErrorMessage>
       ) : null}
 
       <form
@@ -31,7 +34,9 @@ export const CreateBoardForm = () => {
         <label className="min-w-0 flex-1">
           <span className="sr-only">Board title</span>
           <input
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            aria-describedby={error ? errorId : undefined}
+            aria-invalid={Boolean(error)}
+            className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isDisabled}
             name="title"
             placeholder="Product Roadmap"

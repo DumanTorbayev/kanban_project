@@ -28,7 +28,7 @@ Current milestone:
 - **UI:** Tailwind CSS, shadcn/ui, Radix primitives
 - **Drag and drop:** dnd-kit
 - **Testing:** Vitest, Playwright
-- **Charts:** Recharts or Chart.js
+- **Charts:** Recharts
 - **Monorepo:** Turborepo, pnpm workspaces
 - **Deployment target:** Vercel
 
@@ -37,22 +37,33 @@ Current milestone:
 ```txt
 apps/
   web/                    # Next.js application
+    app/                   # App Router routes, layouts, loading/error boundaries
+    shared/                # Cross-feature UI, helpers, browser/auth utilities
+    entities/              # Domain models, API readers, pure domain helpers
+    features/              # User actions, forms, mutations, server actions
+    widgets/               # Composed product UI blocks
+    lib/                   # Application infrastructure such as Supabase clients
+    e2e/                   # Playwright scenarios
 
 packages/
   ui/                     # Shared shadcn/ui components and global styles
   eslint-config/          # Shared ESLint flat configs
   typescript-config/      # Shared TypeScript configs
+docs/
+  adr/                    # Architecture Decision Records
 ```
 
-The application will evolve toward Feature-Sliced Design boundaries inside `apps/web` as product features become stable:
+The web app follows pragmatic Feature-Sliced Design boundaries:
 
 ```txt
-shared/                   # Infrastructure, low-level UI, config, helpers
-entities/                 # Board, column, card, profile models
-features/                 # User actions such as create board or move card
-widgets/                  # Composed UI blocks such as Kanban board or sidebar
-views/                    # Route-level page compositions
+app/                      # Routing only: pages, layouts, loading/error/not-found states
+shared/                   # Reusable primitives without business ownership
+entities/                 # Domain data types, read APIs, cache helpers, pure logic
+features/                 # User intentions: create, rename, delete, move, track, export
+widgets/                  # Page-level product blocks composed from entities/features
 ```
+
+`app/` stays thin on purpose. If route JSX grows, the product composition should move into widgets or feature UI, while server boundaries and routing remain in `app/`.
 
 ## Getting Started
 
@@ -222,7 +233,7 @@ Security controls and deployment hardening notes are tracked in [`docs/security.
 
 ### Time Tracking and Analytics
 
-- Task timer start, pause, stop
+- Task timer start and stop
 - Time entry persistence
 - Analytics dashboard
 - CSV and PDF exports
@@ -244,3 +255,25 @@ Security controls and deployment hardening notes are tracked in [`docs/security.
 - Zustand is reserved for client-only product state that does not belong to the backend, such as board UI preferences, open panels, filters, and local view settings.
 - Architecture Decision Records are kept in [`docs/adr`](docs/adr) to document why major technical choices were made.
 - UI text is written in English to keep the product consistent for portfolio and deployment use.
+
+## Architecture Decisions
+
+| Decision                                                                                     | Why it matters                                                                                                             |
+| -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| [Next.js App Router and state strategy](docs/adr/0001-next-app-router-and-state-strategy.md) | Explains why this authenticated Kanban app uses Next.js instead of a pure SPA, and where TanStack Query vs Zustand belong. |
+| [Feature-Sliced boundaries](docs/adr/0002-feature-sliced-boundaries.md)                      | Documents the folder boundaries that keep route files thin and product logic discoverable.                                 |
+| [Supabase Auth, RLS, and Realtime](docs/adr/0003-supabase-auth-rls-realtime.md)              | Defines the backend security and collaboration model, including why RLS is the main authorization boundary.                |
+| [Testing and delivery pipeline](docs/adr/0004-testing-and-delivery-pipeline.md)              | Captures the quality gate strategy for unit tests, E2E tests, branch protection, and Vercel deployment.                    |
+
+## State Strategy
+
+Remote data is not copied into Zustand. Supabase records are fetched, cached, optimistically updated, and reconciled through TanStack Query because that data is asynchronous, shared, and invalidated by mutations or realtime events.
+
+Zustand is used only for client-owned UI state that does not need backend persistence. In this project, time report filters are a good example: they are local product preferences, not Supabase records.
+
+## Trade-offs and Future Work
+
+- Next.js adds server/client boundaries that a Vite SPA would avoid, but those boundaries are intentional for auth cookies, protected routes, server actions, deployment, and portfolio-level architecture discussion.
+- Supabase Realtime is used for collaboration, but mutation paths still use TanStack Query optimistic updates so the local user does not wait for websocket round trips.
+- RLS protects data even if application UI checks are bypassed, but every new table or RPC must be reviewed with policy coverage before shipping.
+- Storybook was intentionally removed from the MVP scope. The current quality focus is CI, unit tests, E2E scenarios, route states, and production deployment.
