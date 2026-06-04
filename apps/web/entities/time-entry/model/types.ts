@@ -40,8 +40,6 @@ export type TimeReportFilters = {
   period: TimeReportPeriod;
 };
 
-export type TimeEntriesHistoryPeriod = TimeReportPeriod;
-
 export type TimeEntriesHistoryFilters = TimeReportFilters;
 
 export type TimeAnalyticsCardBreakdown = {
