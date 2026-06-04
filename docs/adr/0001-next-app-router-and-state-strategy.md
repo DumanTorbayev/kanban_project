@@ -45,3 +45,9 @@ Do not use Zustand for Supabase records, authenticated user data, or remote reso
 Kanban could have been built as an SPA, but Next.js was chosen to demonstrate full-stack React architecture, protected server boundaries, auth cookies, deployment model, and App Router trade-offs.
 
 The state strategy is intentionally split: TanStack Query handles server state because it is asynchronous, shared, cacheable, and invalidated by mutations or realtime events. Zustand is used only where local product state needs a small global store without turning backend data into duplicated client state.
+
+## Related Decisions
+
+- [ADR 0002: Feature-Sliced Boundaries](0002-feature-sliced-boundaries.md)
+- [ADR 0003: Supabase Auth, RLS, and Realtime](0003-supabase-auth-rls-realtime.md)
+- [ADR 0004: Testing and Delivery Pipeline](0004-testing-and-delivery-pipeline.md)
