@@ -110,7 +110,13 @@ export const useCreateCardForm = ({
     },
   });
 
-  const handleCancel = () => onOpenChange(false);
+  const handleCancel = () => {
+    if (mutation.isPending) {
+      return;
+    }
+
+    onOpenChange(false);
+  };
   const handleColumnChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setColumnId(event.target.value);
   };
@@ -122,6 +128,10 @@ export const useCreateCardForm = ({
   };
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (mutation.isPending) {
+      return;
+    }
 
     const normalizedTitle = title.trim();
     const normalizedDescription = description.trim();

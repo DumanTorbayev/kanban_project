@@ -78,6 +78,10 @@ export const useDeleteBoardDialog = ({ board, onOpenChange }: Props) => {
   });
 
   const handleConfirm = () => {
+    if (mutation.isPending) {
+      return;
+    }
+
     mutation.mutate({
       boardId: board.id,
     });

@@ -65,6 +65,10 @@ export const useDeleteColumnDialog = ({ column, onOpenChange }: Props) => {
   });
 
   const handleConfirm = () => {
+    if (mutation.isPending) {
+      return;
+    }
+
     mutation.mutate({
       boardId: column.board_id,
       columnId: column.id,

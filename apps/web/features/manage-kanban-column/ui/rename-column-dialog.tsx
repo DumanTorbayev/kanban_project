@@ -1,6 +1,7 @@
 "use client";
 
 import { type KanbanColumnWithCards } from "@/entities/kanban/model/types";
+import { FormErrorMessage } from "@/shared/ui/form-error-message";
 import { Button } from "@workspace/ui/components/button";
 import { Modal } from "@workspace/ui/components/modal";
 
@@ -18,26 +19,29 @@ export const RenameColumnDialog = ({ column, onOpenChange, open }: Props) => {
       column,
       onOpenChange,
     });
+  const errorId = "rename-column-error";
 
   return (
     <Modal
       description="Rename this workflow stage for everyone on the board."
+      isDismissDisabled={isPending}
       onOpenChange={onOpenChange}
       open={open}
       title="Rename column"
     >
       <form className="space-y-4" onSubmit={handleSubmit}>
         {error ? (
-          <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {error}
-          </p>
+          <FormErrorMessage id={errorId}>{error}</FormErrorMessage>
         ) : null}
 
         <label className="block space-y-1.5">
           <span className="text-sm font-medium">Title</span>
           <input
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            aria-describedby={error ? errorId : undefined}
+            aria-invalid={Boolean(error)}
+            className="h-9 w-full rounded-md border bg-background px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
             defaultValue={column.title}
+            disabled={isPending}
             name="title"
             required
             type="text"

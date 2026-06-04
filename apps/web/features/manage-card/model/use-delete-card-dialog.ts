@@ -65,6 +65,10 @@ export const useDeleteCardDialog = ({ card, onOpenChange }: Props) => {
   });
 
   const handleConfirm = () => {
+    if (mutation.isPending) {
+      return;
+    }
+
     mutation.mutate({
       boardId: card.board_id,
       cardId: card.id,

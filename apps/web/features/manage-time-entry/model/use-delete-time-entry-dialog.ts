@@ -71,6 +71,10 @@ export const useDeleteTimeEntryDialog = ({
   });
 
   const handleConfirm = () => {
+    if (mutation.isPending) {
+      return;
+    }
+
     mutation.mutate({
       boardId: timeEntry.board_id,
       timeEntryId: timeEntry.id,
