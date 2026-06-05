@@ -1,7 +1,13 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import { createClient } from "@supabase/supabase-js";
 
 import { type E2eCredentials } from "./auth";
+
+type SupabasePasswordGrantResponse = {
+  access_token?: string;
+  error?: string;
+  error_description?: string;
+  msg?: string;
+};
 
 const boardHrefPattern =
   /\/boards\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -38,6 +44,50 @@ const getBoardIdFromUrl = (boardUrl: string): string => {
   return boardId;
 };
 
+const getResponseText = async (response: Response) => {
+  const responseText = await response.text();
+
+  return responseText || response.statusText;
+};
+
+const getSupabaseAccessToken = async (
+  credentials: E2eCredentials,
+  supabaseUrl: string,
+  supabasePublishableKey: string,
+) => {
+  const response = await fetch(
+    `${supabaseUrl}/auth/v1/token?grant_type=password`,
+    {
+      body: JSON.stringify({
+        email: credentials.email,
+        password: credentials.password,
+      }),
+      headers: {
+        apikey: supabasePublishableKey,
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(await getResponseText(response));
+  }
+
+  const authData = (await response.json()) as SupabasePasswordGrantResponse;
+
+  if (!authData.access_token) {
+    throw new Error(
+      authData.error_description ??
+        authData.error ??
+        authData.msg ??
+        "Supabase did not return an access token.",
+    );
+  }
+
+  return authData.access_token;
+};
+
 export const deleteBoardByUrl = async (
   credentials: E2eCredentials,
   boardUrl: string,
@@ -50,29 +100,25 @@ export const deleteBoardByUrl = async (
     throw new Error("Missing Supabase env variables for E2E cleanup.");
   }
 
-  const supabase = createClient(supabaseUrl, supabasePublishableKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
+  const accessToken = await getSupabaseAccessToken(
+    credentials,
+    supabaseUrl,
+    supabasePublishableKey,
+  );
+  const boardId = encodeURIComponent(getBoardIdFromUrl(boardUrl));
+  const deleteResponse = await fetch(
+    `${supabaseUrl}/rest/v1/boards?id=eq.${boardId}`,
+    {
+      headers: {
+        apikey: supabasePublishableKey,
+        Authorization: `Bearer ${accessToken}`,
+        Prefer: "return=minimal",
+      },
+      method: "DELETE",
     },
-  });
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email: credentials.email,
-    password: credentials.password,
-  });
+  );
 
-  if (signInError) {
-    throw new Error(signInError.message);
-  }
-
-  const { error: deleteError } = await supabase
-    .from("boards")
-    .delete()
-    .eq("id", getBoardIdFromUrl(boardUrl));
-
-  await supabase.auth.signOut();
-
-  if (deleteError) {
-    throw new Error(deleteError.message);
+  if (!deleteResponse.ok) {
+    throw new Error(await getResponseText(deleteResponse));
   }
 };
