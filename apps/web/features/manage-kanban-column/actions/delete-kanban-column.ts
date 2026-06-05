@@ -17,22 +17,14 @@ export async function deleteKanbanColumn(input: DeleteKanbanColumnInput) {
   const { supabase } = await requireUser({
     redirectTo: "/boards/" + input.boardId,
   });
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("board_columns")
     .delete()
     .eq("id", input.columnId)
-    .eq("board_id", input.boardId)
-    .select("id")
-    .maybeSingle();
+    .eq("board_id", input.boardId);
 
   if (error) {
     throw new Error(error.message);
-  }
-
-  if (!data) {
-    throw new Error(
-      "Column not found or you do not have permission to delete it.",
-    );
   }
 
   revalidatePath("/boards/" + input.boardId);

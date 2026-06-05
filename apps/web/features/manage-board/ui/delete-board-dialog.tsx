@@ -14,7 +14,6 @@ interface Props {
 export const DeleteBoardDialog = ({ board, onOpenChange, open }: Props) => {
   const { error, handleConfirm, isPending } = useDeleteBoardDialog({
     board,
-    onOpenChange,
   });
 
   return (
