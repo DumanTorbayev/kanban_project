@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { createBoardFromDashboard } from "./helpers/boards";
+import { createBoardFromDashboard, deleteBoardByUrl } from "./helpers/boards";
 import {
   getE2eCredentials,
   getSecondaryE2eCredentials,
@@ -107,28 +107,7 @@ test.describe("board members", () => {
       });
     } finally {
       if (boardUrl) {
-        await ownerPage.goto(boardUrl);
-        await ownerPage
-          .getByRole("button", {
-            name: "Board actions",
-          })
-          .click();
-        await ownerPage
-          .getByRole("menuitem", {
-            name: "Delete board",
-          })
-          .click();
-
-        const deleteBoardDialog = ownerPage.getByRole("alertdialog", {
-          name: "Delete board?",
-        });
-
-        await expect(deleteBoardDialog).toBeVisible();
-        await deleteBoardDialog
-          .getByRole("button", {
-            name: "Delete board",
-          })
-          .click();
+        await deleteBoardByUrl(ownerCredentials, boardUrl);
       }
 
       await ownerContext.close();
@@ -224,28 +203,7 @@ test.describe("board members", () => {
       });
     } finally {
       if (boardUrl) {
-        await ownerPage.goto(boardUrl);
-        await ownerPage
-          .getByRole("button", {
-            name: "Board actions",
-          })
-          .click();
-        await ownerPage
-          .getByRole("menuitem", {
-            name: "Delete board",
-          })
-          .click();
-
-        const deleteBoardDialog = ownerPage.getByRole("alertdialog", {
-          name: "Delete board?",
-        });
-
-        await expect(deleteBoardDialog).toBeVisible();
-        await deleteBoardDialog
-          .getByRole("button", {
-            name: "Delete board",
-          })
-          .click();
+        await deleteBoardByUrl(ownerCredentials, boardUrl);
       }
 
       await ownerContext.close();

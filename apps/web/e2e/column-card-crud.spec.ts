@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
-import { createBoardFromDashboard } from "./helpers/boards";
+import { createBoardFromDashboard, deleteBoardByUrl } from "./helpers/boards";
 import { getE2eCredentials, signIn } from "./helpers/auth";
 import { AUTHENTICATED_E2E_TIMEOUT_MS } from "./helpers/timeouts";
 
@@ -234,32 +234,8 @@ test.describe("column and card CRUD", () => {
     });
     await expect(renamedColumnRegion).toHaveCount(0);
 
-    await page
-      .getByRole("button", {
-        name: "Board actions",
-      })
-      .click();
-    await page
-      .getByRole("menuitem", {
-        name: "Delete board",
-      })
-      .click();
-
-    const deleteBoardDialog = page.getByRole("alertdialog", {
-      name: "Delete board?",
-    });
-
-    await expect(deleteBoardDialog).toBeVisible();
-    await Promise.all([
-      page.waitForURL(/\/dashboard$/, {
-        timeout: 15_000,
-      }),
-      deleteBoardDialog
-        .getByRole("button", {
-          name: "Delete board",
-        })
-        .click(),
-    ]);
+    await deleteBoardByUrl(e2eCredentials, page.url());
+    await page.goto("/dashboard");
     await expect(
       page.getByRole("link", {
         name: new RegExp(boardTitle),
